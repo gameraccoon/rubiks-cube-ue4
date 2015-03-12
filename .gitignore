@@ -2,3 +2,7 @@
 /Intermediate
 /Saved
 /ContentPrecompiled
+/Binaries
+/Build
+*.opensdf
+/Rubik.sdf

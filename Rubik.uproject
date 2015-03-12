@@ -1,6 +1,13 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{FF1E93AA-4F6C-C23C-F1C6-AE8195FF9F1E}",
+	"EngineAssociation": "4.7",
 	"Category": "",
-	"Description": ""
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "Rubik",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
 }
