@@ -6,10 +6,12 @@
 
 // Sets default values
 ARubicsCube::ARubicsCube()
+	: Count(3)
+	, Size(100)
+	, Type("Standart")
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 // Called when the game starts or when spawned
@@ -26,3 +28,21 @@ void ARubicsCube::Tick( float DeltaTime )
 
 }
 
+void ARubicsCube::InitCube()
+{
+	for (int k = 0; k < Count; ++k)
+	{
+		for (int j = 0; j < Count; ++j)
+		{
+			for (int i = 0; i < Count; ++i)
+			{
+				InitCubePart(CubePart::Coord(i, j, k));
+			}
+		}
+	}
+}
+
+void ARubicsCube::InitCubePart(const CubePart::Coord& coord)
+{
+
+}
