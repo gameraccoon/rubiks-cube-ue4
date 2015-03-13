@@ -3,7 +3,7 @@
 #include "Rubik.h"
 #include "RubicsCube.h"
 
-// some abstract action with Rubik's Cube
+/// some abstract action with Rubik's cube
 class RubiksCubeCommand
 	: public Command
 {
@@ -13,14 +13,15 @@ public:
 	{}
 
 protected:
-	/** get target for modification */
+	/// get target for modification
 	ARubicsCube * GetTarget() { return target; }
 
 private:
-	// pointer to object that we will modify
+	/// pointer to object that we will modify
 	ARubicsCube * const target;
 };
 
+/// Rotation one of layers of a Rubik's cube
 class RotationCommand
 	: public RubiksCubeCommand
 {
@@ -36,37 +37,54 @@ public:
 		return Ref(new RotationCommand(target, axis, layerIdx));
 	}
 
-	~RotationCommand()
-	{
-
-	}
+	~RotationCommand() {}
 
 	virtual void Execute() override
 	{
+		if (isExecuted)
+		{
+			FError::Throwf(TEXT("Try to execute already executed command"));
+			return;
+		}
 
+		isExecuted = true;
 	}
 
 	virtual void Unexecute() override
 	{
+		if (!isExecuted)
+		{
+			FError::Throwf(TEXT("Try to unexecute not executed command"));
+			return;
+		}
 
+		isExecuted = false;
+	}
+
+	virtual bool IsContinious() override
+	{
+		return true;
 	}
 
 	virtual void SetProgress(float progress) override
 	{
-
+		// ToDo: implementation
 	}
 
 private:
 	RotationCommand(ARubicsCube * target, Axis axis, int layerIdx)
 		: RubiksCubeCommand(target)
+		, isExecuted(false)
 		, axis(axis)
 		, layerIndex(layerIdx)
 	{}
 
 private:
-	// axis we rotating around (directed)
+	/// have command been already executed
+	bool isExecuted;
+	/// axis we rotating around (directed)
 	const Axis axis;
-	// index of layer that we rotating
+	/// index of layer that we rotating
 	const int layerIndex;
 };
 
@@ -111,5 +129,5 @@ void ARubicsCube::InitCube()
 
 void ARubicsCube::InitCubePart(const CubePart::Coord& coord)
 {
-
+	// ToDo: implementation
 }

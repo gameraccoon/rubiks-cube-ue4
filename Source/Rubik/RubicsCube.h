@@ -19,6 +19,8 @@ public:
 	virtual void Execute() = 0;
 	/// undo actions of the command
 	virtual void Unexecute() = 0;
+	/// is command continious in time
+	virtual bool IsContinious() = 0;
 	/// set progress (for continious commands)
 	virtual void SetProgress(float progress) = 0;
 };
