@@ -5,6 +5,24 @@
 #include "GameFramework/Actor.h"
 #include "RubicsCube.generated.h"
 
+// An abstract action that we can do and undo
+class Command
+{
+public:
+	typedef TSharedRef<Command> Ref;
+	typedef TSharedPtr<Command> Ptr;
+
+public:
+	virtual ~Command() = 0;
+
+	/// execute the command
+	virtual void Execute() = 0;
+	/// undo actions of the command
+	virtual void Unexecute() = 0;
+	/// set progress (for continious commands)
+	virtual void SetProgress(float progress) = 0;
+};
+
 UCLASS()
 class RUBIK_API ARubicsCube : public AActor
 {
@@ -43,6 +61,13 @@ private:
 	};
 
 private:
+	TArray<AActor*> cubeParts;
+	TDoubleLinkedList<Command::Ref> commandsHistory;
+	TDoubleLinkedList<Command::Ref>::TIterator commandsHead;
+
+private:
 	void InitCube();
 	void InitCubePart(const CubePart::Coord& coord);
+
+	friend class CubicCommand;
 };
