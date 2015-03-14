@@ -32,11 +32,15 @@ public:
 
 	/** size in elements */
 	UPROPERTY(EditAnywhere, Category = "Parameters", meta = (ClampMin = "2", ClampMax = "5", UIMin = "2", UIMax = "5"))
-		uint8 Count;
+		uint8 GridSize;
 
-	/** size in units */
+	/** whole cube size in units */
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-		float Size;
+		float InitialSize;
+
+	/** single block size in units */
+	UPROPERTY(EditAnywhere, Category = "Parameters")
+		float InitialBlockSize;
 
 	/** cubic's type */
 	UPROPERTY(EditAnywhere, Category = "Parameters")
@@ -71,13 +75,18 @@ private:
 	};
 
 private:
-	TArray<AActor*> cubeParts;
+	TArray<UStaticMeshComponent *> cubeParts;
 	TDoubleLinkedList<Command::Ref> commandsHistory;
 	TDoubleLinkedList<Command::Ref>::TIterator commandsHead;
 
 private:
 	void InitCube(const class FObjectInitializer& OI);
 	void InitCubePart(const class FObjectInitializer& OI, const CubePart::Coord& coord);
+	UStaticMesh * Init1BoardPart();
+	UStaticMesh * Init2BoardPart();
+	UStaticMesh * Init3BoardPart();
+	UStaticMeshComponent * ConstructBlock(UStaticMesh * staticMesh, const class FObjectInitializer& OI, FVector location, FRotator rotation);
+	FRotator InitBlockRotation(const CubePart::Coord& coord);
 
 	friend class CubicCommand;
 };

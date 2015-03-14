@@ -3,6 +3,12 @@
 #include "Rubik.h"
 #include "RubicsCube.h"
 
+enum class RotationAxis {
+	FX, RX,
+	FY, RY,
+	FZ, RZ
+};
+
 /// some abstract action with Rubik's cube
 class RubiksCubeCommand
 	: public Command
@@ -25,14 +31,8 @@ private:
 class RotationCommand
 	: public RubiksCubeCommand
 {
-	enum Axis {
-		FX, RX,
-		FY, RY,
-		FZ, RZ
-	};
-
 public:
-	static Ref Create(ARubicsCube * target, Axis axis, int layerIdx)
+	static Ref Create(ARubicsCube * target, RotationAxis axis, int layerIdx)
 	{
 		return Ref(new RotationCommand(target, axis, layerIdx));
 	}
@@ -72,7 +72,7 @@ public:
 	}
 
 private:
-	RotationCommand(ARubicsCube * target, Axis axis, int layerIdx)
+	RotationCommand(ARubicsCube * target, RotationAxis axis, int layerIdx)
 		: RubiksCubeCommand(target)
 		, isExecuted(false)
 		, axis(axis)
@@ -83,7 +83,7 @@ private:
 	/// have command been already executed
 	bool isExecuted;
 	/// axis we rotating around (directed)
-	const Axis axis;
+	const RotationAxis axis;
 	/// index of layer that we rotating
 	const int layerIndex;
 };
@@ -91,8 +91,9 @@ private:
 // Sets default values
 ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	: Super(OI)
-	, Count(3)
-	, Size(100)
+	, GridSize(3)
+	, InitialBlockSize(23.f)
+	, InitialSize(80.0f)
 	, Type("Standart")
 	, commandsHead(commandsHistory.GetTail())
 {
@@ -119,11 +120,11 @@ void ARubicsCube::Tick( float DeltaTime )
 
 void ARubicsCube::InitCube(const class FObjectInitializer& OI)
 {
-	for (int k = 0; k < Count; ++k)
+	for (int k = 0; k < GridSize; ++k)
 	{
-		for (int j = 0; j < Count; ++j)
+		for (int j = 0; j < GridSize; ++j)
 		{
-			for (int i = 0; i < Count; ++i)
+			for (int i = 0; i < GridSize; ++i)
 			{
 				InitCubePart(OI, CubePart::Coord(i, j, k));
 			}
@@ -131,21 +132,195 @@ void ARubicsCube::InitCube(const class FObjectInitializer& OI)
 	}
 }
 
+UStaticMesh * ARubicsCube::Init1BoardPart()
+{
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/1Board/1Board_LowPoly.1Board_LowPoly'"));
+	return meshObjFinder.Object;
+}
+
+UStaticMesh * ARubicsCube::Init2BoardPart()
+{
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/2Board/2Board_LowPoly.2Board_LowPoly'"));
+	return meshObjFinder.Object;
+}
+
+UStaticMesh * ARubicsCube::Init3BoardPart()
+{
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/3Board/3Board_LowPoly.3Board_LowPoly'"));
+	return meshObjFinder.Object;
+}
+
+UStaticMeshComponent * ARubicsCube::ConstructBlock(UStaticMesh * staticMesh, const class FObjectInitializer& OI, FVector location, FRotator rotation)
+{
+	UStaticMeshComponent* blockComponent = OI.CreateDefaultSubobject < UStaticMeshComponent >(this, MakeUniqueObjectName(this, AActor::StaticClass(), "Block"));
+	blockComponent->SetStaticMesh(staticMesh);
+	blockComponent->AttachParent = RootComponent;
+	blockComponent->SetRelativeLocationAndRotation(location, rotation);
+	return blockComponent;
+}
+
 void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const CubePart::Coord& coord)
 {
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshOb_AW2(TEXT("StaticMesh'/Game/Cube/3Board/3Board_LowPoly.3Board_LowPoly'"));
+	UStaticMesh * mesh = nullptr;
 
-	UStaticMesh * AssetSM_JoyControl = StaticMeshOb_AW2.Object;
+	int blocksCount = 0;
 
-	//Create
-	UStaticMeshComponent* JoyfulControl = OI.CreateDefaultSubobject < UStaticMeshComponent >(this, MakeUniqueObjectName(this, AActor::StaticClass(), "Block"));
+	if (coord.x == 0) ++blocksCount;
+	if (coord.x == GridSize - 1) ++blocksCount;
+	if (coord.y == 0) ++blocksCount;
+	if (coord.y == GridSize - 1) ++blocksCount;
+	if (coord.z == 0) ++blocksCount;
+	if (coord.z == GridSize - 1) ++blocksCount;
 
-	//Set Mesh
-	JoyfulControl->SetStaticMesh(AssetSM_JoyControl);
+	switch (blocksCount)
+	{
+	case 0:
+		break;
+	case 1:
+		mesh = Init1BoardPart();
+		break;
+	case 2:
+		mesh = Init2BoardPart();
+		break;
+	case 3:
+		mesh = Init3BoardPart();
+		break;
+	case 4:
+	case 5:
+	case 6:
+		FError::Throwf(TEXT("Unusual cube form"));
+		break;
+	default:
+		FError::Throwf(TEXT("Error with cube form calculationg"));
+		break;
+	}
 
-	JoyfulControl->AttachParent = RootComponent;
+	if (mesh != nullptr)
+	{
+		cubeParts.Push(ConstructBlock(mesh, OI, FVector(coord.x, coord.y, coord.z) * InitialBlockSize, InitBlockRotation(coord)));
+	}
+}
 
-	JoyfulControl->SetRelativeLocation(FVector(coord.x, coord.y, coord.z) * 30.0f);
+// ToDo: find any better way to calculate rotation
+FRotator ARubicsCube::InitBlockRotation(const CubePart::Coord& coord)
+{
+	if (coord.x == 0)
+	{
+		if (coord.y == 0)
+		{
+			if (coord.z == 0)
+			{
+				return FRotator(0.0f, -90.0f, -90.0f);
+			}
+			else if (coord.z == GridSize - 1)
+			{
+				return FRotator(0.0f, -90.0f, 0.0f);
+			}
 
-	// ToDo: implementation
+			return FRotator(-90.0f, -90.0f, 0.0f);
+		}
+		else if (coord.y == GridSize - 1)
+		{
+			if (coord.z == 0)
+			{
+				return FRotator(0.0f, 180.0f, -90.0f);
+			}
+			else if (coord.z == GridSize - 1)
+			{
+				return FRotator(0.0f, 180.0f, 0.0f);
+			}
+
+			return FRotator(-90.0f, 180.0f, 0.0f);
+		}
+
+		if (coord.z == 0)
+		{
+			return FRotator(0.0f, -90.0f, -90.0f);
+		}
+		else if (coord.z == GridSize - 1)
+		{
+			return FRotator(0.0f, -90.0f, 0.0f);
+		}
+
+		return FRotator(90.0f, 0.0f, 0.0f);
+	}
+	else if (coord.x == GridSize - 1)
+	{
+		if (coord.y == 0)
+		{
+			if (coord.z == 0)
+			{
+				return FRotator(0.0f, 0.0f, -90.0f);
+			}
+			else if (coord.z == GridSize - 1)
+			{
+				return FRotator(0.0f, 0.0f, 0.0f);
+			}
+
+			return FRotator(-90.0f, 0.0f, 0.0f);
+		}
+		else if (coord.y == GridSize - 1)
+		{
+			if (coord.z == 0)
+			{
+				return FRotator(0.0f, 0.0f, 180.0f);
+			}
+			else if (coord.z == GridSize - 1)
+			{
+				return FRotator(0.0f, 90.0f, 0.0f);
+			}
+
+			return FRotator(-90.0f, 90.0f, 0.0f);
+		}
+
+		if (coord.z == 0)
+		{
+			return FRotator(0.0f, 90.0f, -90.0f);
+		}
+		else if (coord.z == GridSize - 1)
+		{
+			return FRotator(0.0f, 90.0f, 0.0f);
+		}
+
+		return FRotator(-90.0f, 0.0f, 0.0f);
+	}
+	
+	if (coord.y == 0)
+	{
+		if (coord.z == 0)
+		{
+			return FRotator(0.0f, 0.0f, -90.0f);
+		}
+		else if (coord.z == GridSize - 1)
+		{
+			return FRotator(0.0f, 0.0f, 0.0f);
+		}
+
+		return FRotator(0.0f, 0.0f, -90.0f);
+	}
+	else if (coord.y == GridSize - 1)
+	{
+		if (coord.z == 0)
+		{
+			return FRotator(0.0f, 0.0f, 180.0f);
+		}
+		else if (coord.z == GridSize - 1)
+		{
+			return FRotator(0.0f, 0.0f, 90.0f);
+		}
+
+		return FRotator(0.0f, 0.0f, 90.0f);
+	}
+	
+	if (coord.z == 0)
+	{
+		return FRotator(180.0f, 0.0f, 0.0f);
+	}
+	else if (coord.z == GridSize - 1)
+	{
+		return FRotator(0.0f, 0.0f, 0.0f);
+	}
+
+	FError::Throwf(TEXT("Wrong actor position to rotate"));
+	return FRotator::ZeroRotator;
 }
