@@ -10,7 +10,6 @@ class Command
 {
 public:
 	typedef TSharedRef<Command> Ref;
-	typedef TSharedPtr<Command> Ptr;
 
 public:
 	virtual ~Command() = 0;
@@ -33,19 +32,28 @@ public:
 
 	/** size in elements */
 	UPROPERTY(EditAnywhere, Category = "Parameters", meta = (ClampMin = "2", ClampMax = "5", UIMin = "2", UIMax = "5"))
-	uint8 Count;
+		uint8 Count;
 
 	/** size in units */
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-	float Size;
+		float Size;
 
 	/** cubic's type */
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-	FName Type;
+		FName Type;
+
+	UPROPERTY(EditAnywhere, Category = "CubeCompoents")
+		UStaticMesh * Block1Board;
+
+	UPROPERTY(EditAnywhere, Category = "CubeCompoents")
+		UStaticMesh * Block2Board;
+
+	UPROPERTY(EditAnywhere, Category = "CubeCompoents")
+		UStaticMesh * Block3Board;
 
 public:	
 	// Sets default values for this actor's properties
-	ARubicsCube();
+	ARubicsCube(const class FObjectInitializer& OI);
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -68,8 +76,8 @@ private:
 	TDoubleLinkedList<Command::Ref>::TIterator commandsHead;
 
 private:
-	void InitCube();
-	void InitCubePart(const CubePart::Coord& coord);
+	void InitCube(const class FObjectInitializer& OI);
+	void InitCubePart(const class FObjectInitializer& OI, const CubePart::Coord& coord);
 
 	friend class CubicCommand;
 };

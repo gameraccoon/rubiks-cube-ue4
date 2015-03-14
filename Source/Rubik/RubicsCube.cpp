@@ -89,21 +89,25 @@ private:
 };
 
 // Sets default values
-ARubicsCube::ARubicsCube()
-	: Count(3)
+ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
+	: Super(OI)
+	, Count(3)
 	, Size(100)
 	, Type("Standart")
 	, commandsHead(commandsHistory.GetTail())
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	RootComponent = OI.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneComponent"));
+
+	InitCube(OI);
 }
 
 // Called when the game starts or when spawned
 void ARubicsCube::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -113,7 +117,7 @@ void ARubicsCube::Tick( float DeltaTime )
 
 }
 
-void ARubicsCube::InitCube()
+void ARubicsCube::InitCube(const class FObjectInitializer& OI)
 {
 	for (int k = 0; k < Count; ++k)
 	{
@@ -121,13 +125,27 @@ void ARubicsCube::InitCube()
 		{
 			for (int i = 0; i < Count; ++i)
 			{
-				InitCubePart(CubePart::Coord(i, j, k));
+				InitCubePart(OI, CubePart::Coord(i, j, k));
 			}
 		}
 	}
 }
 
-void ARubicsCube::InitCubePart(const CubePart::Coord& coord)
+void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const CubePart::Coord& coord)
 {
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshOb_AW2(TEXT("StaticMesh'/Game/Cube/3Board/3Board_LowPoly.3Board_LowPoly'"));
+
+	UStaticMesh * AssetSM_JoyControl = StaticMeshOb_AW2.Object;
+
+	//Create
+	UStaticMeshComponent* JoyfulControl = OI.CreateDefaultSubobject < UStaticMeshComponent >(this, MakeUniqueObjectName(this, AActor::StaticClass(), "Block"));
+
+	//Set Mesh
+	JoyfulControl->SetStaticMesh(AssetSM_JoyControl);
+
+	JoyfulControl->AttachParent = RootComponent;
+
+	JoyfulControl->SetRelativeLocation(FVector(coord.x, coord.y, coord.z) * 30.0f);
+
 	// ToDo: implementation
 }
