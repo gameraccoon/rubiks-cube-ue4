@@ -2,97 +2,13 @@
 
 #include "Rubik.h"
 #include "RubicsCube.h"
-
-enum class RotationAxis {
-	FX, RX,
-	FY, RY,
-	FZ, RZ
-};
-
-/// some abstract action with Rubik's cube
-class RubiksCubeCommand
-	: public Command
-{
-public:
-	RubiksCubeCommand(ARubicsCube * target)
-		: target(target)
-	{}
-
-protected:
-	/// get target for modification
-	ARubicsCube * GetTarget() { return target; }
-
-private:
-	/// pointer to object that we will modify
-	ARubicsCube * const target;
-};
-
-/// Rotation one of layers of a Rubik's cube
-class RotationCommand
-	: public RubiksCubeCommand
-{
-public:
-	static Ref Create(ARubicsCube * target, RotationAxis axis, int layerIdx)
-	{
-		return Ref(new RotationCommand(target, axis, layerIdx));
-	}
-
-	~RotationCommand() {}
-
-	virtual void Execute() override
-	{
-		if (isExecuted)
-		{
-			FError::Throwf(TEXT("Try to execute already executed command"));
-			return;
-		}
-
-		isExecuted = true;
-	}
-
-	virtual void Unexecute() override
-	{
-		if (!isExecuted)
-		{
-			FError::Throwf(TEXT("Try to unexecute not executed command"));
-			return;
-		}
-
-		isExecuted = false;
-	}
-
-	virtual bool IsContinious() override
-	{
-		return true;
-	}
-
-	virtual void SetProgress(float progress) override
-	{
-		// ToDo: implementation
-	}
-
-private:
-	RotationCommand(ARubicsCube * target, RotationAxis axis, int layerIdx)
-		: RubiksCubeCommand(target)
-		, isExecuted(false)
-		, axis(axis)
-		, layerIndex(layerIdx)
-	{}
-
-private:
-	/// have command been already executed
-	bool isExecuted;
-	/// axis we rotating around (directed)
-	const RotationAxis axis;
-	/// index of layer that we rotating
-	const int layerIndex;
-};
+#include "RCRotationCommand.h"
 
 // Sets default values
 ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	: Super(OI)
 	, GridSize(3)
-	, InitialBlockSize(23.f)
+	, InitialBlockSize(23.0f)
 	, InitialSize(80.0f)
 	, Type("Standart")
 	, commandsHead(commandsHistory.GetTail())
@@ -101,6 +17,8 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = OI.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneComponent"));
+
+	centerShift = -FVector(1.0f, 1.0f, 1.0f) * 0.5 * InitialBlockSize * (GridSize - 1);
 
 	InitCube(OI);
 }
@@ -134,7 +52,11 @@ void ARubicsCube::InitCube(const class FObjectInitializer& OI)
 
 UStaticMesh * ARubicsCube::Init1BoardPart()
 {
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/1Board/1Board_LowPoly.1Board_LowPoly'"));
+	if (Block1Board == nullptr)
+	{
+		return nullptr;
+	}
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(Block1Board->GetName().GetCharArray().GetData());
 	return meshObjFinder.Object;
 }
 
@@ -197,7 +119,7 @@ void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const CubePar
 
 	if (mesh != nullptr)
 	{
-		cubeParts.Push(ConstructBlock(mesh, OI, FVector(coord.x, coord.y, coord.z) * InitialBlockSize, InitBlockRotation(coord)));
+		cubeParts.Push(ConstructBlock(mesh, OI, FVector(coord.x, coord.y, coord.z) * InitialBlockSize + centerShift, InitBlockRotation(coord)));
 	}
 }
 

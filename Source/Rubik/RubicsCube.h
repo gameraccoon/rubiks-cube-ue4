@@ -3,26 +3,9 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "Base/Command.h"
 #include "RubicsCube.generated.h"
 
-// An abstract action that we can do and undo
-class Command
-{
-public:
-	typedef TSharedRef<Command> Ref;
-
-public:
-	virtual ~Command() = 0;
-
-	/// execute the command
-	virtual void Execute() = 0;
-	/// undo actions of the command
-	virtual void Unexecute() = 0;
-	/// is command continious in time
-	virtual bool IsContinious() = 0;
-	/// set progress (for continious commands)
-	virtual void SetProgress(float progress) = 0;
-};
 
 UCLASS()
 class RUBIK_API ARubicsCube : public AActor
@@ -76,8 +59,10 @@ private:
 
 private:
 	TArray<UStaticMeshComponent *> cubeParts;
-	TDoubleLinkedList<Command::Ref> commandsHistory;
-	TDoubleLinkedList<Command::Ref>::TIterator commandsHead;
+	TDoubleLinkedList<GameBase::Command::Ref> commandsHistory;
+	TDoubleLinkedList<GameBase::Command::Ref>::TIterator commandsHead;
+
+	FVector centerShift;
 
 private:
 	void InitCube(const class FObjectInitializer& OI);
