@@ -3,7 +3,7 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
-#include "Base/Command.h"
+#include "Base/CommandHistory.h"
 #include "RubicsCube.generated.h"
 
 
@@ -59,8 +59,7 @@ private:
 
 private:
 	TArray<UStaticMeshComponent *> cubeParts;
-	TDoubleLinkedList<GameBase::Command::Ref> commandsHistory;
-	TDoubleLinkedList<GameBase::Command::Ref>::TIterator commandsHead;
+	GameBase::CommandHistory commandHistory;
 
 	FVector centerShift;
 

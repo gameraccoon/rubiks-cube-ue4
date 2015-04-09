@@ -11,9 +11,7 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	, InitialBlockSize(23.0f)
 	, InitialSize(80.0f)
 	, Type("Standart")
-	, commandsHead(commandsHistory.GetTail())
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = OI.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneComponent"));
@@ -33,7 +31,6 @@ void ARubicsCube::BeginPlay()
 void ARubicsCube::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
-
 }
 
 void ARubicsCube::InitCube(const class FObjectInitializer& OI)

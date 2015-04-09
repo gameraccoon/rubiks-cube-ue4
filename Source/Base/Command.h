@@ -9,6 +9,7 @@ namespace GameBase
 	{
 	public:
 		typedef TSharedRef<Command> Ref;
+		typedef TSharedPtr<Command> Ptr;
 
 	public:
 		virtual ~Command() = default;
