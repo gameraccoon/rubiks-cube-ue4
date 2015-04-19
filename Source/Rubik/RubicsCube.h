@@ -4,8 +4,13 @@
 
 #include "GameFramework/Actor.h"
 #include "Base/CommandHistory.h"
+#include "RCParts.h"
 #include "RubicsCube.generated.h"
 
+namespace RC {
+	class CubeCommand;
+	class RotationCommand;
+}
 
 UCLASS()
 class RUBIK_API ARubicsCube : public AActor
@@ -49,28 +54,21 @@ public:
 	virtual void Tick( float DeltaSeconds ) override;
 
 private:
-	struct CubePart
-	{
-		struct Coord {
-			Coord(int x, int y, int z) : x(x), y(y), z(z) {}
-			int x, y, z;
-		};
-	};
-
-private:
-	TArray<UStaticMeshComponent *> cubeParts;
 	GameBase::CommandHistory commandHistory;
+
+	RC::CubeParts parts;
 
 	FVector centerShift;
 
 private:
 	void InitCube(const class FObjectInitializer& OI);
-	void InitCubePart(const class FObjectInitializer& OI, const CubePart::Coord& coord);
+	void InitCubePart(const class FObjectInitializer& OI, const RC::CubeParts::Coord& coord);
 	UStaticMesh * Init1BoardPart();
 	UStaticMesh * Init2BoardPart();
 	UStaticMesh * Init3BoardPart();
 	UStaticMeshComponent * ConstructBlock(UStaticMesh * staticMesh, const class FObjectInitializer& OI, FVector location, FRotator rotation);
-	FRotator InitBlockRotation(const CubePart::Coord& coord);
+	FRotator InitBlockRotation(const RC::CubeParts::Coord& coord);
 
-	friend class CubicCommand;
+	friend class RC::CubeCommand;
+	friend class RC::RotationCommand;
 };

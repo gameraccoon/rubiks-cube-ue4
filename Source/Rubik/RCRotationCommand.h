@@ -4,12 +4,6 @@
 
 namespace RC
 {
-	enum class RotationAxis {
-		FX, RX,
-		FY, RY,
-		FZ, RZ
-	};
-
 	/// Rotation one of layers of a Rubik's cube
 	class RotationCommand
 		: public CubeCommand

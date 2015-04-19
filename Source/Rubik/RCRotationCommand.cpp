@@ -28,6 +28,7 @@ namespace RC
 		}
 
 		isExecuted = true;
+		SetProgress(1.0f);
 	}
 
 	void RotationCommand::Unexecute()
@@ -39,6 +40,7 @@ namespace RC
 		}
 
 		isExecuted = false;
+		SetProgress(0.0f);
 	}
 
 	bool RotationCommand::IsContinious()
@@ -48,6 +50,13 @@ namespace RC
 
 	void RotationCommand::SetProgress(float progress)
 	{
-		// ToDo: implementation
+		if (progress < 0.001f || progress > 0.999f)
+		{
+			FError::Throwf(TEXT("Incorrect progress value"));
+			return;
+		}
+
+		ARubicsCube* cube = GetTarget();
+		cube->parts.RotateSlice(axis, layerIndex, progress * 90.0f, FVector());
 	}
 }

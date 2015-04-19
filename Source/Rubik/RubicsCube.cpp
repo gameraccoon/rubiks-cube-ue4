@@ -11,6 +11,7 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	, InitialBlockSize(23.0f)
 	, InitialSize(80.0f)
 	, Type("Standart")
+	, parts(3, 3, 3)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -19,6 +20,9 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	centerShift = -FVector(1.0f, 1.0f, 1.0f) * 0.5 * InitialBlockSize * (GridSize - 1);
 
 	InitCube(OI);
+
+	commandHistory.AddCommand(RC::RotationCommand::Create(this, RC::RotationAxis::FX, 0));
+	commandHistory.GetCurrentCommand()->SetProgress(0.5);
 }
 
 // Called when the game starts or when spawned
@@ -31,6 +35,7 @@ void ARubicsCube::BeginPlay()
 void ARubicsCube::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
+
 }
 
 void ARubicsCube::InitCube(const class FObjectInitializer& OI)
@@ -41,7 +46,7 @@ void ARubicsCube::InitCube(const class FObjectInitializer& OI)
 		{
 			for (int i = 0; i < GridSize; ++i)
 			{
-				InitCubePart(OI, CubePart::Coord(i, j, k));
+				InitCubePart(OI, RC::CubeParts::Coord(i, j, k));
 			}
 		}
 	}
@@ -49,11 +54,8 @@ void ARubicsCube::InitCube(const class FObjectInitializer& OI)
 
 UStaticMesh * ARubicsCube::Init1BoardPart()
 {
-	if (Block1Board == nullptr)
-	{
-		return nullptr;
-	}
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(Block1Board->GetName().GetCharArray().GetData());
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/1Board/1Board_LowPoly.1Board_LowPoly'"));
 	return meshObjFinder.Object;
 }
 
@@ -78,7 +80,7 @@ UStaticMeshComponent * ARubicsCube::ConstructBlock(UStaticMesh * staticMesh, con
 	return blockComponent;
 }
 
-void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const CubePart::Coord& coord)
+void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const RC::CubeParts::Coord& coord)
 {
 	UStaticMesh * mesh = nullptr;
 
@@ -116,12 +118,12 @@ void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const CubePar
 
 	if (mesh != nullptr)
 	{
-		cubeParts.Push(ConstructBlock(mesh, OI, FVector(coord.x, coord.y, coord.z) * InitialBlockSize + centerShift, InitBlockRotation(coord)));
+		parts.InsertPart(ConstructBlock(mesh, OI, FVector(coord.x, coord.y, coord.z) * InitialBlockSize + centerShift, InitBlockRotation(coord)), coord);
 	}
 }
 
 // ToDo: find any better way to calculate rotation
-FRotator ARubicsCube::InitBlockRotation(const CubePart::Coord& coord)
+FRotator ARubicsCube::InitBlockRotation(const RC::CubeParts::Coord& coord)
 {
 	if (coord.x == 0)
 	{

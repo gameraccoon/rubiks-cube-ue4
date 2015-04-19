@@ -1,4 +1,5 @@
-#include "CommandHistory.h"
+#include "Rubik.h"
+#include "Base/CommandHistory.h"
 
 namespace GameBase
 {
@@ -51,7 +52,19 @@ namespace GameBase
 
 	void CommandHistory::AddCommand(Command::Ref command)
 	{
-		FError::Throwf(TEXT("CommandHistory::AddCommand need implementation"));
+		// if we have some commands after the current remove them
+		if (!IsEmpty() && !IsOnHead())
+		{
+			auto headCommand = commands.GetHead();
+			while (headCommand != currentCommand)
+			{
+				commands.RemoveNode(headCommand);
+				headCommand = commands.GetHead();
+			}
+		}
+
+		commands.AddHead(command);
+		currentCommand = commands.GetHead();
 	}
 
 } // namespace GameBase
