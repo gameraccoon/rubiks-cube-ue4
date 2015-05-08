@@ -4,6 +4,12 @@
 #include "RubicsCube.h"
 #include "RCRotationCommand.h"
 
+
+static float progress = 0.0f;
+static int currentAxis = 0;
+static int currentStep = 0;
+
+
 // Sets default values
 ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	: Super(OI)
@@ -20,15 +26,16 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	centerShift = -FVector(1.0f, 1.0f, 1.0f) * 0.5 * InitialBlockSize * (GridSize - 1);
 
 	InitCube(OI);
-
-	commandHistory.AddCommand(RC::RotationCommand::Create(this, RC::RotationAxis::FX, 0));
-	commandHistory.GetCurrentCommand()->SetProgress(0.5);
 }
 
 // Called when the game starts or when spawned
 void ARubicsCube::BeginPlay()
 {
 	Super::BeginPlay();
+
+	progress = 0.0f;
+	int currentAxis = 0;
+	int currentStep = 0;
 }
 
 // Called every frame
@@ -36,6 +43,67 @@ void ARubicsCube::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
+	progress += DeltaTime * 0.5;
+
+
+	while (progress >= 1.0f || !commandHistory.GetCurrentCommand().IsValid())
+	{
+		GameBase::Command::Ptr currentCommand = commandHistory.GetCurrentCommand();
+		if (currentCommand.IsValid())
+		{
+			currentCommand->Execute();
+		}
+
+		++currentStep;
+
+		if (currentStep > 2)
+		{
+			++currentAxis;
+
+			if (currentAxis > 5)
+			{
+				currentAxis = 0;
+			}
+
+			currentStep = 0;
+		}
+
+		RC::RotationAxis axis;
+
+		switch (currentAxis)
+		{
+		case 0:
+			axis = RC::RotationAxis::FX;
+			break;
+		case 1:
+			axis = RC::RotationAxis::FY;
+			break;
+		case 2:
+			axis = RC::RotationAxis::FZ;
+			break;
+		case 3:
+			axis = RC::RotationAxis::RX;
+			break;
+		case 4:
+			axis = RC::RotationAxis::RY;
+			break;
+		case 5:
+			axis = RC::RotationAxis::RZ;
+			break;
+		default:
+			FError::Throwf(TEXT("Unusual axis"));
+			break;
+		}
+
+		commandHistory.AddCommand(RC::RotationCommand::Create(this, axis, currentStep));
+
+		if (progress >= 1.0f)
+		{
+			progress -= 1.0f;
+		}
+	}
+
+	commandHistory.GetCurrentCommand()->SetProgress(progress);
 }
 
 void ARubicsCube::InitCube(const class FObjectInitializer& OI)

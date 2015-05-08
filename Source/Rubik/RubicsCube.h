@@ -43,7 +43,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "CubeCompoents")
 		UStaticMesh * Block3Board;
 
-public:	
+public:
 	// Sets default values for this actor's properties
 	ARubicsCube(const class FObjectInitializer& OI);
 

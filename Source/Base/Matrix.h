@@ -12,11 +12,11 @@ namespace GameBase
 			: width(width)
 			, height(height)
 		{
-			for (int x = 0; x < length; ++x)
+			for (unsigned int x = 0; x < width; ++x)
 			{
-				matrix.Add(TArray<TArray<T>>());
+				matrix.Add(TArray<T>());
 
-				for (int y = 0; y < width; ++y)
+				for (unsigned int y = 0; y < height; ++y)
 				{
 					matrix[x].Add(defaultValue);
 				}

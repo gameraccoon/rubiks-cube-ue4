@@ -1,16 +1,11 @@
 #pragma once
 
 #include "Base/Matrix.h"
+#include "RCRotationAxis.h"
 #include "Engine.h"
 
 namespace RC
 {
-	enum class RotationAxis {
-		FX, RX,
-		FY, RY,
-		FZ, RZ
-	};
-
 	class CubeParts
 	{
 	public:
@@ -24,12 +19,24 @@ namespace RC
 
 		void InsertPart(UStaticMeshComponent* part, Coord pos);
 		void RotateSlice(RotationAxis axis, int pos, float angle, const FVector& center);
+		void RenewPartsLocations(RotationAxis axis, int pos);
 
 	private:
 		typedef UStaticMeshComponent* PartPtr;
 
+		struct PartInfo {
+			PartPtr ptr;
+			FQuat initialRotation;
+			FVector initialLocation;
+
+			PartInfo() : ptr(nullptr) {}
+		};
+
+		typedef GameBase::Matrix<PartInfo*> Slice;
+
 	private:
-		GameBase::Array3D<PartPtr> parts;
-		void RotatePart(PartPtr part, const FRotator& rotation, const FVector& center);
+		GameBase::Array3D<PartInfo> parts;
+		void RotatePart(PartInfo* part, const FRotator& rotation, const FVector& center);
+		Slice GetSlice(RotationAxis axis, int pos);
 	};
 } // namespace GameBase

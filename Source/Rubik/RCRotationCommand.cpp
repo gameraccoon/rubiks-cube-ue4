@@ -29,6 +29,9 @@ namespace RC
 
 		isExecuted = true;
 		SetProgress(1.0f);
+
+		ARubicsCube* cube = GetTarget();
+		cube->parts.RenewPartsLocations(axis, layerIndex);
 	}
 
 	void RotationCommand::Unexecute()
@@ -41,6 +44,9 @@ namespace RC
 
 		isExecuted = false;
 		SetProgress(0.0f);
+
+		ARubicsCube* cube = GetTarget();
+		cube->parts.RenewPartsLocations(-axis, layerIndex);
 	}
 
 	bool RotationCommand::IsContinious()
@@ -50,7 +56,7 @@ namespace RC
 
 	void RotationCommand::SetProgress(float progress)
 	{
-		if (progress < 0.001f || progress > 0.999f)
+		if (progress < -0.001f || progress > 1.001f)
 		{
 			FError::Throwf(TEXT("Incorrect progress value"));
 			return;
