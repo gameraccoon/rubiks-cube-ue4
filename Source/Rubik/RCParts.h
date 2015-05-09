@@ -15,7 +15,7 @@ namespace RC
 		};
 
 	public:
-		CubeParts(int length, int width, int height);
+		CubeParts(int length, int width, int height, float initialBlockSize, FVector centerShift);
 
 		void InsertPart(UStaticMeshComponent* part, Coord pos);
 		void RotateSlice(RotationAxis axis, int pos, float angle, const FVector& center);
@@ -35,8 +35,13 @@ namespace RC
 		typedef GameBase::Matrix<PartInfo*> Slice;
 
 	private:
-		GameBase::Array3D<PartInfo> parts;
 		void RotatePart(PartInfo* part, const FRotator& rotation, const FVector& center);
 		Slice GetSlice(RotationAxis axis, int pos);
+		FRotator GetPartInitialRotation(const Coord& coord);
+
+	private:
+		GameBase::Array3D<PartInfo> parts;
+		float initialBlockSize;
+		FVector centerShift;
 	};
 } // namespace GameBase

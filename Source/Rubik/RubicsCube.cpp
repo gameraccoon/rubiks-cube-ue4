@@ -17,13 +17,11 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	, InitialBlockSize(23.0f)
 	, InitialSize(80.0f)
 	, Type("Standart")
-	, parts(3, 3, 3)
+	, parts(3, 3, 3, InitialBlockSize, -FVector(1.0f, 1.0f, 1.0f) * 0.5 * InitialBlockSize * (GridSize - 1))
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = OI.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneComponent"));
-
-	centerShift = -FVector(1.0f, 1.0f, 1.0f) * 0.5 * InitialBlockSize * (GridSize - 1);
 
 	InitCube(OI);
 }
@@ -186,130 +184,6 @@ void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const RC::Cub
 
 	if (mesh != nullptr)
 	{
-		parts.InsertPart(ConstructBlock(mesh, OI, FVector(coord.x, coord.y, coord.z) * InitialBlockSize + centerShift, InitBlockRotation(coord)), coord);
+		parts.InsertPart(ConstructBlock(mesh, OI, FVector(), FRotator()), coord);
 	}
-}
-
-// ToDo: find any better way to calculate rotation
-FRotator ARubicsCube::InitBlockRotation(const RC::CubeParts::Coord& coord)
-{
-	if (coord.x == 0)
-	{
-		if (coord.y == 0)
-		{
-			if (coord.z == 0)
-			{
-				return FRotator(0.0f, -90.0f, -90.0f);
-			}
-			else if (coord.z == GridSize - 1)
-			{
-				return FRotator(0.0f, -90.0f, 0.0f);
-			}
-
-			return FRotator(-90.0f, -90.0f, 0.0f);
-		}
-		else if (coord.y == GridSize - 1)
-		{
-			if (coord.z == 0)
-			{
-				return FRotator(0.0f, 180.0f, -90.0f);
-			}
-			else if (coord.z == GridSize - 1)
-			{
-				return FRotator(0.0f, 180.0f, 0.0f);
-			}
-
-			return FRotator(-90.0f, 180.0f, 0.0f);
-		}
-
-		if (coord.z == 0)
-		{
-			return FRotator(0.0f, -90.0f, -90.0f);
-		}
-		else if (coord.z == GridSize - 1)
-		{
-			return FRotator(0.0f, -90.0f, 0.0f);
-		}
-
-		return FRotator(90.0f, 0.0f, 0.0f);
-	}
-	else if (coord.x == GridSize - 1)
-	{
-		if (coord.y == 0)
-		{
-			if (coord.z == 0)
-			{
-				return FRotator(0.0f, 0.0f, -90.0f);
-			}
-			else if (coord.z == GridSize - 1)
-			{
-				return FRotator(0.0f, 0.0f, 0.0f);
-			}
-
-			return FRotator(-90.0f, 0.0f, 0.0f);
-		}
-		else if (coord.y == GridSize - 1)
-		{
-			if (coord.z == 0)
-			{
-				return FRotator(0.0f, 0.0f, 180.0f);
-			}
-			else if (coord.z == GridSize - 1)
-			{
-				return FRotator(0.0f, 90.0f, 0.0f);
-			}
-
-			return FRotator(-90.0f, 90.0f, 0.0f);
-		}
-
-		if (coord.z == 0)
-		{
-			return FRotator(0.0f, 90.0f, -90.0f);
-		}
-		else if (coord.z == GridSize - 1)
-		{
-			return FRotator(0.0f, 90.0f, 0.0f);
-		}
-
-		return FRotator(-90.0f, 0.0f, 0.0f);
-	}
-	
-	if (coord.y == 0)
-	{
-		if (coord.z == 0)
-		{
-			return FRotator(0.0f, 0.0f, -90.0f);
-		}
-		else if (coord.z == GridSize - 1)
-		{
-			return FRotator(0.0f, 0.0f, 0.0f);
-		}
-
-		return FRotator(0.0f, 0.0f, -90.0f);
-	}
-	else if (coord.y == GridSize - 1)
-	{
-		if (coord.z == 0)
-		{
-			return FRotator(0.0f, 0.0f, 180.0f);
-		}
-		else if (coord.z == GridSize - 1)
-		{
-			return FRotator(0.0f, 0.0f, 90.0f);
-		}
-
-		return FRotator(0.0f, 0.0f, 90.0f);
-	}
-	
-	if (coord.z == 0)
-	{
-		return FRotator(180.0f, 0.0f, 0.0f);
-	}
-	else if (coord.z == GridSize - 1)
-	{
-		return FRotator(0.0f, 0.0f, 0.0f);
-	}
-
-	FError::Throwf(TEXT("Wrong actor position to rotate"));
-	return FRotator::ZeroRotator;
 }

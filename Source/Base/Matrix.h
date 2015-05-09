@@ -8,15 +8,15 @@ namespace GameBase
 	class Matrix
 	{
 	public:
-		Matrix(unsigned int width, unsigned int height, const T& defaultValue)
-			: width(width)
-			, height(height)
+		Matrix(unsigned int _length, unsigned int _width, const T& defaultValue)
+			: length(_length)
+			, width(_width)
 		{
-			for (unsigned int x = 0; x < width; ++x)
+			for (unsigned int x = 0; x < length; ++x)
 			{
 				matrix.Add(TArray<T>());
 
-				for (unsigned int y = 0; y < height; ++y)
+				for (unsigned int y = 0; y < width; ++y)
 				{
 					matrix[x].Add(defaultValue);
 				}
@@ -33,13 +33,13 @@ namespace GameBase
 			return matrix[x];
 		}
 
+		inline const unsigned int getLength() const { return length; }
 		inline const unsigned int getWidth() const { return width; }
-		inline const unsigned int getHeight() const { return height; }
 
 	private:
 		TArray<TArray<T>> matrix;
+		const unsigned int length;
 		const unsigned int width;
-		const unsigned int height;
 	};
 
 	template <typename T>

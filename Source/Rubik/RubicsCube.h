@@ -58,8 +58,6 @@ private:
 
 	RC::CubeParts parts;
 
-	FVector centerShift;
-
 private:
 	void InitCube(const class FObjectInitializer& OI);
 	void InitCubePart(const class FObjectInitializer& OI, const RC::CubeParts::Coord& coord);
@@ -67,7 +65,6 @@ private:
 	UStaticMesh * Init2BoardPart();
 	UStaticMesh * Init3BoardPart();
 	UStaticMeshComponent * ConstructBlock(UStaticMesh * staticMesh, const class FObjectInitializer& OI, FVector location, FRotator rotation);
-	FRotator InitBlockRotation(const RC::CubeParts::Coord& coord);
 
 	friend class RC::CubeCommand;
 	friend class RC::RotationCommand;

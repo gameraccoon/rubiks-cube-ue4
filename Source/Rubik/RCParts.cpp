@@ -3,8 +3,10 @@
 
 namespace RC
 {
-	CubeParts::CubeParts(int length, int width, int height)
+	CubeParts::CubeParts(int length, int width, int height, float _initialBlockSize, FVector _centerShift)
 		: parts(length, width, height, PartInfo())
+		, initialBlockSize(_initialBlockSize)
+		, centerShift(_centerShift)
 	{
 	}
 
@@ -22,9 +24,15 @@ namespace RC
 			FError::Throwf(TEXT("Part is NULL"));
 		}
 
+		FVector loaction(FVector(pos.x, pos.y, pos.z) * initialBlockSize + centerShift);
+		FRotator roataion(GetPartInitialRotation(pos));
+
+		part->SetRelativeLocation(loaction);
+		part->SetRelativeRotation(roataion);
+
 		partInfo.ptr = part;
-		partInfo.initialRotation = FQuat(part->GetComponentRotation());
-		partInfo.initialLocation = part->GetComponentLocation();
+		partInfo.initialLocation = loaction;
+		partInfo.initialRotation = FQuat(roataion);
 	}
 
 	void CubeParts::RotateSlice(RotationAxis axis, int pos, float angle, const FVector& center)
@@ -51,9 +59,9 @@ namespace RC
 		}
 
 		Slice slice = GetSlice(axis, pos);
-		for (unsigned int y = 0, ySize = slice.getHeight(); y < ySize; ++y)
+		for (unsigned int y = 0, ySize = slice.getWidth(); y < ySize; ++y)
 		{
-			for (unsigned int x = 0, xSize = slice.getWidth(); x < xSize; ++x)
+			for (unsigned int x = 0, xSize = slice.getLength(); x < xSize; ++x)
 			{
 				RotatePart(slice[x][y], rotation, center);
 			}
@@ -63,47 +71,59 @@ namespace RC
 
 	void CubeParts::RenewPartsLocations(RotationAxis axis, int pos)
 	{
-		//const bool isReversed = !axis.IsFrontal();
-		//Slice slice = GetSlice(axis, pos);
+		Slice slice = GetSlice(axis, pos);
 
-		//const int N = slice.getWidth();
+		const int N = slice.getWidth();
 
-		//if (!isReversed)
-		//{
-		//	for (int ii = 0; ii < (N / 2 + N % 2); ++ii) {
-		//		for (int jj = 0; jj < N / 2; ++jj) {
-		//			auto tmp = *slice[ii][jj];
-		//			*slice[ii][jj] = *slice[N - 1 - jj][ii];
-		//			*slice[N - 1 - jj][ii] = *slice[N - 1 - ii][N - 1 - jj];
-		//			*slice[N - 1 - ii][N - 1 - jj] = *slice[jj][N - 1 - ii];
-		//			*slice[jj][N - 1 - ii] = tmp;
-		//		}
-		//	}
-		//}
-		//else
-		//{
-		//	for (int ii = 0; ii < (N / 2 + N % 2); ++ii) {
-		//		for (int jj = 0; jj < N / 2; ++jj) {
-		//			auto tmp = *slice[ii][jj];
-		//			*slice[ii][jj] = *slice[jj][N - 1 - ii];
-		//			*slice[jj][N - 1 - ii] = *slice[N - 1 - ii][N - 1 - jj];
-		//			*slice[N - 1 - ii][N - 1 - jj] = *slice[N - 1 - jj][ii];
-		//			*slice[N - 1 - jj][ii] = tmp;
-		//		}
-		//	}
-		//}
+		if (!axis.IsFrontal())
+		{
+			for (int ii = 0; ii < (N / 2 + N % 2); ++ii) {
+				for (int jj = 0; jj < N / 2; ++jj) {
+					auto tmp = *slice[ii][jj];
+					*slice[ii][jj] = *slice[N - 1 - jj][ii];
+					*slice[N - 1 - jj][ii] = *slice[N - 1 - ii][N - 1 - jj];
+					*slice[N - 1 - ii][N - 1 - jj] = *slice[jj][N - 1 - ii];
+					*slice[jj][N - 1 - ii] = tmp;
+				}
+			}
+		}
+		else
+		{
+			for (int ii = 0; ii < (N / 2 + N % 2); ++ii) {
+				for (int jj = 0; jj < N / 2; ++jj) {
+					auto tmp = *slice[ii][jj];
+					*slice[ii][jj] = *slice[jj][N - 1 - ii];
+					*slice[jj][N - 1 - ii] = *slice[N - 1 - ii][N - 1 - jj];
+					*slice[N - 1 - ii][N - 1 - jj] = *slice[N - 1 - jj][ii];
+					*slice[N - 1 - jj][ii] = tmp;
+				}
+			}
+		}
 
-		//for (unsigned int y = 0, ySize = slice.getHeight(); y < ySize; ++y)
-		//{
-		//	for (unsigned int x = 0, xSize = slice.getWidth(); x < xSize; ++x)
-		//	{
-		//		if (slice[x][y]->ptr)
-		//		{
-		//			//slice[x][y]->initialLocation = slice[x][y]->ptr->GetComponentLocation();
-		//			slice[x][y]->initialRotation = FQuat(slice[x][y]->ptr->GetComponentRotation());
-		//		}
-		//	}
-		//}
+		for (unsigned int z = 0, zSize = parts.getHeight(); z < zSize; ++z)
+		{
+			for (unsigned int y = 0, ySize = parts.getWidth(); y < ySize; ++y)
+			{
+				for (unsigned int x = 0, xSize = parts.getLength(); x < xSize; ++x)
+				{
+					if (!parts[x][y][z].ptr)
+					{
+						continue;
+					}
+
+					FVector loaction(FVector(x, y, z) * initialBlockSize + centerShift);
+					FRotator roataion(GetPartInitialRotation(Coord(x, y, z)));
+
+					PartInfo &partInfo = parts[x][y][z];
+					//partInfo.ptr->SetRelativeLocation(loaction);
+					//partInfo.ptr->SetRelativeRotation(roataion);
+
+					auto* partPtr = partInfo.ptr;
+					partInfo.initialRotation = FQuat(roataion);
+					partInfo.initialLocation = loaction;
+				}
+			}
+		}
 	}
 
 	void CubeParts::RotatePart(PartInfo* part, const FRotator& rotation, const FVector& center)
@@ -156,7 +176,7 @@ namespace RC
 			{
 				for (unsigned int z = 0, zSize = parts.getHeight(); z < zSize; ++z)
 				{
-					slice[z][x] = &parts[x][y][z];
+					slice[x][z] = &parts[x][y][z];
 				}
 			}
 		}
@@ -179,5 +199,130 @@ namespace RC
 
 		return slice;
 	}
+
+	// ToDo: find any better way to calculate rotation
+	FRotator CubeParts::GetPartInitialRotation(const Coord& coord)
+	{
+		if (coord.x == 0)
+		{
+			if (coord.y == 0)
+			{
+				if (coord.z == 0)
+				{
+					return FRotator(0.0f, -90.0f, -90.0f);
+				}
+				else if (coord.z == parts.getHeight() - 1)
+				{
+					return FRotator(0.0f, -90.0f, 0.0f);
+				}
+
+				return FRotator(-90.0f, -90.0f, 0.0f);
+			}
+			else if (coord.y == parts.getWidth() - 1)
+			{
+				if (coord.z == 0)
+				{
+					return FRotator(0.0f, 180.0f, -90.0f);
+				}
+				else if (coord.z == parts.getHeight() - 1)
+				{
+					return FRotator(0.0f, 180.0f, 0.0f);
+				}
+
+				return FRotator(-90.0f, 180.0f, 0.0f);
+			}
+
+			if (coord.z == 0)
+			{
+				return FRotator(0.0f, -90.0f, -90.0f);
+			}
+			else if (coord.z == parts.getHeight() - 1)
+			{
+				return FRotator(0.0f, -90.0f, 0.0f);
+			}
+
+			return FRotator(90.0f, 0.0f, 0.0f);
+		}
+		else if (coord.x == parts.getLength() - 1)
+		{
+			if (coord.y == 0)
+			{
+				if (coord.z == 0)
+				{
+					return FRotator(0.0f, 0.0f, -90.0f);
+				}
+				else if (coord.z == parts.getHeight() - 1)
+				{
+					return FRotator(0.0f, 0.0f, 0.0f);
+				}
+
+				return FRotator(-90.0f, 0.0f, 0.0f);
+			}
+			else if (coord.y == parts.getWidth() - 1)
+			{
+				if (coord.z == 0)
+				{
+					return FRotator(0.0f, 0.0f, 180.0f);
+				}
+				else if (coord.z == parts.getHeight() - 1)
+				{
+					return FRotator(0.0f, 90.0f, 0.0f);
+				}
+
+				return FRotator(-90.0f, 90.0f, 0.0f);
+			}
+
+			if (coord.z == 0)
+			{
+				return FRotator(0.0f, 90.0f, -90.0f);
+			}
+			else if (coord.z == parts.getHeight() - 1)
+			{
+				return FRotator(0.0f, 90.0f, 0.0f);
+			}
+
+			return FRotator(-90.0f, 0.0f, 0.0f);
+		}
+
+		if (coord.y == 0)
+		{
+			if (coord.z == 0)
+			{
+				return FRotator(0.0f, 0.0f, -90.0f);
+			}
+			else if (coord.z == parts.getHeight() - 1)
+			{
+				return FRotator(0.0f, 0.0f, 0.0f);
+			}
+
+			return FRotator(0.0f, 0.0f, -90.0f);
+		}
+		else if (coord.y == parts.getWidth() - 1)
+		{
+			if (coord.z == 0)
+			{
+				return FRotator(0.0f, 0.0f, 180.0f);
+			}
+			else if (coord.z == parts.getHeight() - 1)
+			{
+				return FRotator(0.0f, 0.0f, 90.0f);
+			}
+
+			return FRotator(0.0f, 0.0f, 90.0f);
+		}
+
+		if (coord.z == 0)
+		{
+			return FRotator(180.0f, 0.0f, 0.0f);
+		}
+		else if (coord.z == parts.getHeight() - 1)
+		{
+			return FRotator(0.0f, 0.0f, 0.0f);
+		}
+
+		FError::Throwf(TEXT("Wrong actor position to rotate"));
+		return FRotator::ZeroRotator;
+	}
+
 
 }; // namespace RC
