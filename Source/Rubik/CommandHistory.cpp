@@ -11,12 +11,12 @@ namespace GameBase
 
 	bool CommandHistory::IsOnHead() const
 	{
-		return !currentCommand || currentCommand->GetNextNode() == nullptr;
+		return !currentCommand || currentCommand->GetPrevNode() == nullptr;
 	}
 
 	bool CommandHistory::IsOnTail() const
 	{
-		return !currentCommand || currentCommand->GetPrevNode() == nullptr;
+		return !currentCommand || currentCommand->GetNextNode() == nullptr;
 	}
 
 	bool CommandHistory::IsEmpty() const
@@ -34,7 +34,7 @@ namespace GameBase
 		if (IsOnHead()) {
 			return GameBase::Command::Ptr(nullptr);
 		} else {
-			currentCommand = currentCommand->GetNextNode();
+			currentCommand = currentCommand->GetPrevNode();
 			return GetCurrentCommand();
 		}
 	}
@@ -43,9 +43,8 @@ namespace GameBase
 	{
 		if (IsOnTail()) {
 			return GameBase::Command::Ptr(nullptr);
-		}
-		else {
-			currentCommand = currentCommand->GetPrevNode();
+		} else {
+			currentCommand = currentCommand->GetNextNode();
 			return GetCurrentCommand();
 		}
 	}

@@ -115,7 +115,7 @@ namespace RC
 					FRotator roataion(GetPartInitialRotation(Coord(x, y, z)));
 
 					PartInfo &partInfo = parts[x][y][z];
-					//partInfo.ptr->SetRelativeLocation(loaction);
+					partInfo.ptr->SetRelativeLocation(loaction);
 					//partInfo.ptr->SetRelativeRotation(roataion);
 
 					auto* partPtr = partInfo.ptr;

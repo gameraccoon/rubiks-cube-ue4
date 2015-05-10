@@ -46,7 +46,7 @@ namespace RC
 		SetProgress(0.0f);
 
 		ARubicsCube* cube = GetTarget();
-		cube->parts.RenewPartsLocations(-axis, layerIndex);
+		cube->parts.RenewPartsLocations(-axis, cube->GridSize - 1 - layerIndex);
 	}
 
 	bool RotationCommand::IsContinious()

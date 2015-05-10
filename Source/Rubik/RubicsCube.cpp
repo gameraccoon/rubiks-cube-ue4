@@ -8,6 +8,8 @@
 static float progress = 0.0f;
 static int currentAxis = 0;
 static int currentStep = 0;
+static int steps = 0;
+static bool front = true;
 
 
 // Sets default values
@@ -49,51 +51,72 @@ void ARubicsCube::Tick( float DeltaTime )
 		GameBase::Command::Ptr currentCommand = commandHistory.GetCurrentCommand();
 		if (currentCommand.IsValid())
 		{
-			currentCommand->Execute();
+			if (front)
+			{
+				if (steps > 5)
+				{
+					front = false;
+				}
+				else
+				{
+					currentCommand->Execute();
+				}
+			}
+			else
+			{
+				commandHistory.MoveBackward();
+
+				if (commandHistory.IsOnTail())
+				{
+					front = true;
+					steps = 0;
+				}
+				else
+				{
+					commandHistory.GetCurrentCommand()->Unexecute();
+				}
+			}
+		}
+		else
+		{
+			front = true;
 		}
 
-		++currentStep;
-
-		if (currentStep > 2)
+		if (front)
 		{
-			++currentAxis;
+			currentStep = FMath::Rand() % GridSize;
+			currentAxis = FMath::Rand() % 6;
 
-			if (currentAxis > 5)
+			RC::RotationAxis axis;
+
+			switch (currentAxis)
 			{
-				currentAxis = 0;
+			case 0:
+				axis = RC::RotationAxis::FX;
+				break;
+			case 1:
+				axis = RC::RotationAxis::FY;
+				break;
+			case 2:
+				axis = RC::RotationAxis::FZ;
+				break;
+			case 3:
+				axis = RC::RotationAxis::RX;
+				break;
+			case 4:
+				axis = RC::RotationAxis::RY;
+				break;
+			case 5:
+				axis = RC::RotationAxis::RZ;
+				break;
+			default:
+				FError::Throwf(TEXT("Unusual axis"));
+				break;
 			}
 
-			currentStep = 0;
+			commandHistory.AddCommand(RC::RotationCommand::Create(this, axis, currentStep));
+			++steps;
 		}
-
-		RC::RotationAxis axis;
-
-		switch (currentAxis)
-		{
-		case 0:
-			axis = RC::RotationAxis::FX;
-			break;
-		case 1:
-			axis = RC::RotationAxis::FY;
-			break;
-		case 2:
-			axis = RC::RotationAxis::FZ;
-			break;
-		case 3:
-			axis = RC::RotationAxis::RX;
-			break;
-		case 4:
-			axis = RC::RotationAxis::RY;
-			break;
-		case 5:
-			axis = RC::RotationAxis::RZ;
-			break;
-		default:
-			FError::Throwf(TEXT("Unusual axis"));
-			break;
-		}
-
-		commandHistory.AddCommand(RC::RotationCommand::Create(this, axis, currentStep));
 
 		if (progress >= 1.0f)
 		{
@@ -101,7 +124,7 @@ void ARubicsCube::Tick( float DeltaTime )
 		}
 	}
 
-	commandHistory.GetCurrentCommand()->SetProgress(progress);
+	commandHistory.GetCurrentCommand()->SetProgress(front ? progress : 1.0 - progress);
 }
 
 void ARubicsCube::InitCube(const class FObjectInitializer& OI)
@@ -118,22 +141,28 @@ void ARubicsCube::InitCube(const class FObjectInitializer& OI)
 	}
 }
 
-UStaticMesh * ARubicsCube::Init1BoardPart()
+static UStaticMesh * Init1BoardPart()
 {
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/1Board/1Board_LowPoly.1Board_LowPoly'"));
 	return meshObjFinder.Object;
 }
 
-UStaticMesh * ARubicsCube::Init2BoardPart()
+static UStaticMesh * Init2BoardPart()
 {
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/2Board/2Board_LowPoly.2Board_LowPoly'"));
 	return meshObjFinder.Object;
 }
 
-UStaticMesh * ARubicsCube::Init3BoardPart()
+static UStaticMesh * Init3BoardPart()
 {
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/3Board/3Board_LowPoly.3Board_LowPoly'"));
+	return meshObjFinder.Object;
+}
+
+static UStaticMesh * InitSide()
+{
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/Side/Side_low.Side_low'"));
 	return meshObjFinder.Object;
 }
 
@@ -144,6 +173,89 @@ UStaticMeshComponent * ARubicsCube::ConstructBlock(UStaticMesh * staticMesh, con
 	blockComponent->AttachParent = RootComponent;
 	blockComponent->SetRelativeLocationAndRotation(location, rotation);
 	return blockComponent;
+}
+
+UStaticMeshComponent * ARubicsCube::ConstructSide(UStaticMesh * staticMesh, UStaticMeshComponent * parentComponent, FName socketName, const class FObjectInitializer& OI, FVector location, FRotator rotation)
+{
+	UStaticMeshComponent* blockComponent = OI.CreateDefaultSubobject < UStaticMeshComponent >(this, MakeUniqueObjectName(this, AActor::StaticClass(), "Side"));
+	blockComponent->SetStaticMesh(staticMesh);
+	blockComponent->AttachParent = parentComponent;
+	blockComponent->AttachSocketName = socketName;
+	blockComponent->SetRelativeLocationAndRotation(location, rotation);
+	return blockComponent;
+}
+
+UMaterialInstance * ARubicsCube::GetSideMaterial(const RC::CubeParts::Coord& coord, int sideNumber)
+{
+	int colorIdx = 5;
+
+	if (coord.x == 0 && sideNumber == 0)
+	{
+		colorIdx = 0;
+	}
+	else if (coord.x == GridSize - 1 && sideNumber == 0)
+	{
+		colorIdx = 1;
+	}
+	else
+	{
+		colorIdx = 2;
+	}
+
+	const TCHAR* colorName;
+
+	switch (colorIdx)
+	{
+	case 0:
+		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/Blue.Blue'");
+		break;
+	case 1:
+		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/Green.Green'");
+		break;
+	case 2:
+		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/Orange.Orange'");
+		break;
+	case 3:
+		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/Red.Red'");
+		break;
+	case 4:
+		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/White.White'");
+		break;
+	case 5:
+		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/Yellow.Yellow'");
+		break;
+	default:
+		return nullptr;
+		break;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInstance> Material(colorName);
+
+	if (Material.Object != NULL)
+	{
+		return (UMaterialInstance*)Material.Object;
+	}
+
+	return nullptr;
+}
+
+void ARubicsCube::AttachSidesToSockets(UStaticMeshComponent * staticMeshComponent, const class FObjectInitializer& OI, const RC::CubeParts::Coord& coord)
+{
+	auto socketNames = staticMeshComponent->GetAllSocketNames();
+	int sideNumber = 0;
+	for (auto sName : socketNames)
+	{
+		UStaticMesh * side = InitSide();
+		UStaticMeshComponent * sideComponent = ConstructSide(side, staticMeshComponent, sName, OI, FVector(0.0f, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
+
+		UMaterialInstance * material = GetSideMaterial(coord, sideNumber);
+		if (material)
+		{
+			sideComponent->SetMaterial(0, /*UMaterialInstanceDynamic::Create(*/material/*, this)*/);
+		}
+
+		++sideNumber;
+	}
 }
 
 void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const RC::CubeParts::Coord& coord)
@@ -182,8 +294,15 @@ void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const RC::Cub
 		break;
 	}
 
+	static int a = 0;
 	if (mesh != nullptr)
 	{
-		parts.InsertPart(ConstructBlock(mesh, OI, FVector(), FRotator()), coord);
+		UStaticMeshComponent * component = ConstructBlock(mesh, OI, FVector(0.0f, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
+		if (a % 3 == 0)
+		{
+			AttachSidesToSockets(component, OI, coord);
+		}
+		parts.InsertPart(component, coord);
+		a++;
 	}
 }
