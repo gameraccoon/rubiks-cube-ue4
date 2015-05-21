@@ -215,20 +215,20 @@ namespace RC
 				}
 				else if (coord.z == parts.getHeight() - 1)
 				{
-					return FRotator(0.0f, -90.0f, 0.0f);
+					return FRotator(90.0f, -90.0f, -90.0f);
 				}
 
-				return FRotator(-90.0f, -90.0f, 0.0f);
+				return FRotator(90.0f, 90.0f, 90.0f);
 			}
 			else if (coord.y == parts.getWidth() - 1)
 			{
 				if (coord.z == 0)
 				{
-					return FRotator(0.0f, 180.0f, -90.0f);
+					return FRotator(-90.0f, -90.0f, -90.0f);
 				}
 				else if (coord.z == parts.getHeight() - 1)
 				{
-					return FRotator(0.0f, 180.0f, 0.0f);
+					return FRotator(0.0f, 90.0f, 90.0f);
 				}
 
 				return FRotator(-90.0f, 180.0f, 0.0f);
@@ -240,7 +240,7 @@ namespace RC
 			}
 			else if (coord.z == parts.getHeight() - 1)
 			{
-				return FRotator(0.0f, -90.0f, 0.0f);
+				return FRotator(0.0f, 90.0f, 90.0f);
 			}
 
 			return FRotator(90.0f, 0.0f, 0.0f);
