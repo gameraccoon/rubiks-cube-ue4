@@ -34,14 +34,32 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Parameters")
 		FName Type;
 
-	UPROPERTY(EditAnywhere, Category = "CubeCompoents")
-		UStaticMesh * Block1Board;
+	UPROPERTY(EditAnywhere, Category = "CubeComponents")
+		UStaticMesh * BlockBoard1;
 
-	UPROPERTY(EditAnywhere, Category = "CubeCompoents")
-		UStaticMesh * Block2Board;
+	UPROPERTY(EditAnywhere, Category = "CubeComponents")
+		UStaticMesh * BlockBoard2;
 
-	UPROPERTY(EditAnywhere, Category = "CubeCompoents")
-		UStaticMesh * Block3Board;
+	UPROPERTY(EditAnywhere, Category = "CubeComponents")
+		UStaticMesh * BlockBoard3;
+
+	UPROPERTY(EditAnywhere, Category = "Colors")
+		UMaterialInstanceConstant * SideColor1;
+
+	UPROPERTY(EditAnywhere, Category = "Colors")
+		UMaterialInstanceConstant * SideColor2;
+
+	UPROPERTY(EditAnywhere, Category = "Colors")
+		UMaterialInstanceConstant * SideColor3;
+
+	UPROPERTY(EditAnywhere, Category = "Colors")
+		UMaterialInstanceConstant * SideColor4;
+
+	UPROPERTY(EditAnywhere, Category = "Colors")
+		UMaterialInstanceConstant * SideColor5;
+
+	UPROPERTY(EditAnywhere, Category = "Colors")
+		UMaterialInstanceConstant * SideColor6;
 
 public:
 	// Sets default values for this actor's properties
@@ -64,9 +82,17 @@ private:
 	void InitCube();
 	void InitCubePart(UWorld * const world, const RC::CubeParts::Coord& coord);
 
-	UMaterialInstance * GetSideMaterial(const RC::CubeParts::Coord& coord, int sideNumber);
+	UMaterialInstanceConstant * GetSideMaterial(const RC::CubeParts::Coord& coord, int sideNumber);
 	void AttachSidesToSockets(UWorld * const world, AActor * actor, const RC::CubeParts::Coord& coord);
 
 	friend class RC::CubeCommand;
 	friend class RC::RotationCommand;
+
+private:
+	// test values
+	float progress = 0.0f;
+	int currentAxis = 0;
+	int currentStep = 0;
+	int steps = 0;
+	bool front = true;
 };

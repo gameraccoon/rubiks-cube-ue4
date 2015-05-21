@@ -11,13 +11,6 @@
 #include "RubiksSide_Standart.h"
 
 
-static float progress = 0.0f;
-static int currentAxis = 0;
-static int currentStep = 0;
-static int steps = 0;
-static bool front = true;
-
-
 // Sets default values
 ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	: Super(OI)
@@ -164,7 +157,7 @@ void ARubicsCube::InitCube()
 	}
 }
 
-UMaterialInstance * ARubicsCube::GetSideMaterial(const RC::CubeParts::Coord& coord, int sideNumber)
+UMaterialInstanceConstant * ARubicsCube::GetSideMaterial(const RC::CubeParts::Coord& coord, int sideNumber)
 {
 	int colorIdx = 5;
 
@@ -181,41 +174,30 @@ UMaterialInstance * ARubicsCube::GetSideMaterial(const RC::CubeParts::Coord& coo
 		colorIdx = 2;
 	}
 
-	const TCHAR* colorName;
-
 	switch (colorIdx)
 	{
 	case 0:
-		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/Blue.Blue'");
+		return SideColor1;
 		break;
 	case 1:
-		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/Green.Green'");
+		return SideColor2;
 		break;
 	case 2:
-		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/Orange.Orange'");
+		return SideColor3;
 		break;
 	case 3:
-		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/Red.Red'");
+		return SideColor4;
 		break;
 	case 4:
-		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/White.White'");
+		return SideColor5;
 		break;
 	case 5:
-		colorName = TEXT("MaterialInstanceConstant'/Game/Cube/Side/Yellow.Yellow'");
+		return SideColor6;
 		break;
 	default:
 		return nullptr;
 		break;
 	}
-
-	static ConstructorHelpers::FObjectFinder<UMaterialInstance> Material(colorName);
-
-	if (Material.Object != NULL)
-	{
-		return (UMaterialInstance*)Material.Object;
-	}
-
-	return nullptr;
 }
 
 void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, const RC::CubeParts::Coord& coord)
@@ -228,8 +210,8 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 		AActor * side = world->SpawnActor<ARubiksSide_Standart>(ARubiksSide_Standart::StaticClass());
 		side->AttachRootComponentTo(component, sName);
 
-		//static ConstructorHelpers::FObjectFinder <UMaterialInterface> material(TEXT("MaterialInstanceConstant'/Game/Cube/Side/White.White'"));
-		//dynamic_cast<UStaticMeshComponent*>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material.Object);
+		UMaterialInstanceConstant * material = GetSideMaterial(coord, sideNumber);
+		dynamic_cast<UStaticMeshComponent*>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);
 
 		++sideNumber;
 	}
