@@ -4,6 +4,12 @@
 #include "RubicsCube.h"
 #include "RCRotationCommand.h"
 
+#include "RubiksBlock_Standart_1Side.h"
+#include "RubiksBlock_Standart_2Side.h"
+#include "RubiksBlock_Standart_3Side.h"
+#include "RubiksBlock_Standart_3Side.h"
+#include "RubiksSide_Standart.h"
+
 
 static float progress = 0.0f;
 static int currentAxis = 0;
@@ -19,13 +25,10 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	, InitialBlockSize(23.0f)
 	, InitialSize(80.0f)
 	, Type("Standart")
-	, parts(3, 3, 3, InitialBlockSize, -FVector(1.0f, 1.0f, 1.0f) * 0.5 * InitialBlockSize * (GridSize - 1))
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootComponent = OI.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneComponent"));
-
-	InitCube(OI);
 }
 
 // Called when the game starts or when spawned
@@ -33,9 +36,16 @@ void ARubicsCube::BeginPlay()
 {
 	Super::BeginPlay();
 
+	parts = TSharedPtr<RC::CubeParts>(new RC::CubeParts(GridSize, GridSize, GridSize, InitialBlockSize, -FVector(1.0f, 1.0f, 1.0f) * 0.5 * InitialBlockSize * (GridSize - 1)));
+
 	progress = 0.0f;
 	int currentAxis = 0;
 	int currentStep = 0;
+
+	parts->SetMainLocation(this->GetActorLocation());
+	parts->SetMainRotation(this->GetActorRotation());
+
+	InitCube();
 }
 
 // Called every frame
@@ -44,7 +54,6 @@ void ARubicsCube::Tick( float DeltaTime )
 	Super::Tick( DeltaTime );
 
 	progress += DeltaTime * 0.5;
-
 
 	while (progress >= 1.0f || !commandHistory.GetCurrentCommand().IsValid())
 	{
@@ -125,64 +134,34 @@ void ARubicsCube::Tick( float DeltaTime )
 	}
 
 	commandHistory.GetCurrentCommand()->SetProgress(front ? progress : 1.0 - progress);
+
+	UpdateParts();
 }
 
-void ARubicsCube::InitCube(const class FObjectInitializer& OI)
+void ARubicsCube::UpdateParts()
 {
+	parts->SetMainLocation(this->GetActorLocation());
+	parts->SetMainRotation(this->GetActorRotation());
+}
+
+void ARubicsCube::InitCube()
+{
+	UWorld* const world = GetWorld();
+	if (!world)
+	{
+		return;
+	}
+
 	for (int k = 0; k < GridSize; ++k)
 	{
 		for (int j = 0; j < GridSize; ++j)
 		{
 			for (int i = 0; i < GridSize; ++i)
 			{
-				InitCubePart(OI, RC::CubeParts::Coord(i, j, k));
+				InitCubePart(world, RC::CubeParts::Coord(i, j, k));
 			}
 		}
 	}
-}
-
-static UStaticMesh * Init1BoardPart()
-{
-
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/1Board/1Board_LowPoly.1Board_LowPoly'"));
-	return meshObjFinder.Object;
-}
-
-static UStaticMesh * Init2BoardPart()
-{
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/2Board/2Board_LowPoly.2Board_LowPoly'"));
-	return meshObjFinder.Object;
-}
-
-static UStaticMesh * Init3BoardPart()
-{
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/3Board/3Board_LowPoly.3Board_LowPoly'"));
-	return meshObjFinder.Object;
-}
-
-static UStaticMesh * InitSide()
-{
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> meshObjFinder(TEXT("StaticMesh'/Game/Cube/Side/Side_low.Side_low'"));
-	return meshObjFinder.Object;
-}
-
-UStaticMeshComponent * ARubicsCube::ConstructBlock(UStaticMesh * staticMesh, const class FObjectInitializer& OI, FVector location, FRotator rotation)
-{
-	UStaticMeshComponent* blockComponent = OI.CreateDefaultSubobject < UStaticMeshComponent >(this, MakeUniqueObjectName(this, AActor::StaticClass(), "Block"));
-	blockComponent->SetStaticMesh(staticMesh);
-	blockComponent->AttachParent = RootComponent;
-	blockComponent->SetRelativeLocationAndRotation(location, rotation);
-	return blockComponent;
-}
-
-UStaticMeshComponent * ARubicsCube::ConstructSide(UStaticMesh * staticMesh, UStaticMeshComponent * parentComponent, FName socketName, const class FObjectInitializer& OI, FVector location, FRotator rotation)
-{
-	UStaticMeshComponent* blockComponent = OI.CreateDefaultSubobject < UStaticMeshComponent >(this, MakeUniqueObjectName(this, AActor::StaticClass(), "Side"));
-	blockComponent->SetStaticMesh(staticMesh);
-	blockComponent->AttachParent = parentComponent;
-	blockComponent->AttachSocketName = socketName;
-	blockComponent->SetRelativeLocationAndRotation(location, rotation);
-	return blockComponent;
 }
 
 UMaterialInstance * ARubicsCube::GetSideMaterial(const RC::CubeParts::Coord& coord, int sideNumber)
@@ -239,28 +218,26 @@ UMaterialInstance * ARubicsCube::GetSideMaterial(const RC::CubeParts::Coord& coo
 	return nullptr;
 }
 
-void ARubicsCube::AttachSidesToSockets(UStaticMeshComponent * staticMeshComponent, const class FObjectInitializer& OI, const RC::CubeParts::Coord& coord)
+void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, const RC::CubeParts::Coord& coord)
 {
-	auto socketNames = staticMeshComponent->GetAllSocketNames();
+	UStaticMeshComponent* component = dynamic_cast<UStaticMeshComponent*>(actor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+	TArray<FName> socketNames = component->GetAllSocketNames();
 	int sideNumber = 0;
-	for (auto sName : socketNames)
+	for (const FName& sName : socketNames)
 	{
-		UStaticMesh * side = InitSide();
-		UStaticMeshComponent * sideComponent = ConstructSide(side, staticMeshComponent, sName, OI, FVector(0.0f, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
+		AActor * side = world->SpawnActor<ARubiksSide_Standart>(ARubiksSide_Standart::StaticClass());
+		side->AttachRootComponentTo(component, sName);
 
-		UMaterialInstance * material = GetSideMaterial(coord, sideNumber);
-		if (material)
-		{
-			sideComponent->SetMaterial(0, /*UMaterialInstanceDynamic::Create(*/material/*, this)*/);
-		}
+		//static ConstructorHelpers::FObjectFinder <UMaterialInterface> material(TEXT("MaterialInstanceConstant'/Game/Cube/Side/White.White'"));
+		//dynamic_cast<UStaticMeshComponent*>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material.Object);
 
 		++sideNumber;
 	}
 }
 
-void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const RC::CubeParts::Coord& coord)
+void ARubicsCube::InitCubePart(UWorld * const world, const RC::CubeParts::Coord& coord)
 {
-	UStaticMesh * mesh = nullptr;
+	AActor * actor = nullptr;
 
 	int blocksCount = 0;
 
@@ -271,18 +248,20 @@ void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const RC::Cub
 	if (coord.z == 0) ++blocksCount;
 	if (coord.z == GridSize - 1) ++blocksCount;
 
+	float halfSize = InitialBlockSize * GridSize;
+
 	switch (blocksCount)
 	{
 	case 0:
 		break;
 	case 1:
-		mesh = Init1BoardPart();
+		actor = world->SpawnActor<ARubiksBlock_Standart_1Side>(ARubiksBlock_Standart_1Side::StaticClass());
 		break;
 	case 2:
-		mesh = Init2BoardPart();
+		actor = world->SpawnActor<ARubiksBlock_Standart_2Side>(ARubiksBlock_Standart_2Side::StaticClass());
 		break;
 	case 3:
-		mesh = Init3BoardPart();
+		actor = world->SpawnActor<ARubiksBlock_Standart_3Side>(ARubiksBlock_Standart_3Side::StaticClass());
 		break;
 	case 4:
 	case 5:
@@ -294,15 +273,9 @@ void ARubicsCube::InitCubePart(const class FObjectInitializer& OI, const RC::Cub
 		break;
 	}
 
-	static int a = 0;
-	if (mesh != nullptr)
+	if (actor != nullptr)
 	{
-		UStaticMeshComponent * component = ConstructBlock(mesh, OI, FVector(0.0f, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
-		if (a % 3 == 0)
-		{
-			AttachSidesToSockets(component, OI, coord);
-		}
-		parts.InsertPart(component, coord);
-		a++;
+		AttachSidesToSockets(world, actor, coord);
+		parts->InsertPart(actor, coord);
 	}
 }

@@ -17,12 +17,15 @@ namespace RC
 	public:
 		CubeParts(int length, int width, int height, float initialBlockSize, FVector centerShift);
 
-		void InsertPart(UStaticMeshComponent* part, Coord pos);
+		void InsertPart(AActor* part, Coord pos);
 		void RotateSlice(RotationAxis axis, int pos, float angle, const FVector& center);
 		void RenewPartsLocations(RotationAxis axis, int pos);
 
+		inline void SetMainLocation(const FVector& location) { mainLocation = location; };
+		inline void SetMainRotation(const FRotator& rotation) { mainRotation = rotation; };
+
 	private:
-		typedef UStaticMeshComponent* PartPtr;
+		typedef AActor* PartPtr;
 
 		struct PartInfo {
 			PartPtr ptr;
@@ -43,5 +46,8 @@ namespace RC
 		GameBase::Array3D<PartInfo> parts;
 		float initialBlockSize;
 		FVector centerShift;
+
+		FVector mainLocation;
+		FRotator mainRotation;
 	};
 } // namespace GameBase

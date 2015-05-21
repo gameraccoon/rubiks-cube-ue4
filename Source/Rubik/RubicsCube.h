@@ -53,20 +53,19 @@ public:
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
+	void UpdateParts();
+
 private:
 	GameBase::CommandHistory commandHistory;
 
-	RC::CubeParts parts;
+	TSharedPtr<RC::CubeParts> parts;
 
 private:
-	void InitCube(const class FObjectInitializer& OI);
-	void InitCubePart(const class FObjectInitializer& OI, const RC::CubeParts::Coord& coord);
-
-	UStaticMeshComponent * ConstructBlock(UStaticMesh * staticMesh, const class FObjectInitializer& OI, FVector location, FRotator rotation);
-	UStaticMeshComponent * ConstructSide(UStaticMesh * staticMesh, UStaticMeshComponent * parentComponent, FName socketName, const class FObjectInitializer& OI, FVector location, FRotator rotation);
+	void InitCube();
+	void InitCubePart(UWorld * const world, const RC::CubeParts::Coord& coord);
 
 	UMaterialInstance * GetSideMaterial(const RC::CubeParts::Coord& coord, int sideNumber);
-	void AttachSidesToSockets(UStaticMeshComponent * staticMeshComponent, const class FObjectInitializer& OI, const RC::CubeParts::Coord& coord);
+	void AttachSidesToSockets(UWorld * const world, AActor * actor, const RC::CubeParts::Coord& coord);
 
 	friend class RC::CubeCommand;
 	friend class RC::RotationCommand;

@@ -7,10 +7,12 @@ namespace RC
 		: parts(length, width, height, PartInfo())
 		, initialBlockSize(_initialBlockSize)
 		, centerShift(_centerShift)
+		, mainLocation(0.0f, 0.0f, 0.0f)
+		, mainRotation(0.0f, 0.0f, 0.0f)
 	{
 	}
 
-	void CubeParts::InsertPart(UStaticMeshComponent* part, Coord pos)
+	void CubeParts::InsertPart(AActor* part, Coord pos)
 	{
 		PartInfo& partInfo = parts[pos.x][pos.y][pos.z];
 
@@ -24,14 +26,14 @@ namespace RC
 			FError::Throwf(TEXT("Part is NULL"));
 		}
 
-		FVector loaction(FVector(pos.x, pos.y, pos.z) * initialBlockSize + centerShift);
+		FVector location(FVector(pos.x, pos.y, pos.z) * initialBlockSize + centerShift);
 		FRotator roataion(GetPartInitialRotation(pos));
 
-		part->SetRelativeLocation(loaction);
-		part->SetRelativeRotation(roataion);
+		part->SetActorLocation(mainLocation + mainRotation.RotateVector(location));
+		part->SetActorRotation(mainRotation + roataion);
 
 		partInfo.ptr = part;
-		partInfo.initialLocation = loaction;
+		partInfo.initialLocation = location;
 		partInfo.initialRotation = FQuat(roataion);
 	}
 
@@ -111,16 +113,16 @@ namespace RC
 						continue;
 					}
 
-					FVector loaction(FVector(x, y, z) * initialBlockSize + centerShift);
+					FVector location(FVector(x, y, z) * initialBlockSize + centerShift);
 					FRotator roataion(GetPartInitialRotation(Coord(x, y, z)));
 
 					PartInfo &partInfo = parts[x][y][z];
-					partInfo.ptr->SetRelativeLocation(loaction);
-					//partInfo.ptr->SetRelativeRotation(roataion);
+					partInfo.ptr->SetActorLocation(mainLocation + mainRotation.RotateVector(location));
+					//partInfo.ptr->SetActorRotation(mainRotation + roataion);
 
 					auto* partPtr = partInfo.ptr;
 					partInfo.initialRotation = FQuat(roataion);
-					partInfo.initialLocation = loaction;
+					partInfo.initialLocation = location;
 				}
 			}
 		}
@@ -134,8 +136,8 @@ namespace RC
 		}
 
 		FQuat rotationQuat(rotation);
-		part->ptr->SetRelativeLocation(rotationQuat.RotateVector(part->initialLocation));
-		part->ptr->SetRelativeRotation((rotationQuat * part->initialRotation).Rotator());
+		part->ptr->SetActorLocation(mainLocation + mainRotation.RotateVector(rotationQuat.RotateVector(part->initialLocation)));
+		part->ptr->SetActorRotation(mainRotation + (rotationQuat * part->initialRotation).Rotator());
 	}
 
 	CubeParts::Slice CubeParts::GetSlice(RotationAxis axis, int pos)
