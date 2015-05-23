@@ -66,6 +66,7 @@ public:
 
 private:
 	GameBase::CommandHistory commandHistory;
+	GameBase::Command::Ptr currentCommand;
 
 	TSharedPtr<RC::CubeParts> parts;
 
@@ -81,9 +82,9 @@ private:
 
 private:
 	// test values
-	float progress = 0.0f;
-	int currentAxis = 0;
-	int currentStep = 0;
-	int steps = 0;
-	bool front = true;
+	float progress;
+	int currentAxis;
+	int currentStep;
+	int steps;
+	bool front;
 };

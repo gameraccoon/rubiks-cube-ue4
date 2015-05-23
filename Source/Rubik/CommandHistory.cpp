@@ -4,58 +4,64 @@
 namespace GameBase
 {
 	CommandHistory::CommandHistory()
-		: currentCommand(nullptr)
 	{
-
+		cursor.prew = nullptr;
+		cursor.next = nullptr;
 	}
 
 	bool CommandHistory::IsOnHead() const
 	{
-		return !currentCommand || currentCommand->GetPrevNode() == nullptr;
+		return !cursor.next;
 	}
 
 	bool CommandHistory::IsOnTail() const
 	{
-		return !currentCommand || currentCommand->GetNextNode() == nullptr;
+		return !cursor.prew;
 	}
 
 	bool CommandHistory::IsEmpty() const
 	{
-		return !currentCommand;
+		return !cursor.next && !cursor.prew;
 	}
 
-	Command::Ptr CommandHistory::GetCurrentCommand()
+	Command::Ptr CommandHistory::GetNextCommand()
 	{
-		return currentCommand ? currentCommand->GetValue() : GameBase::Command::Ptr(nullptr);
+		return cursor.next ? cursor.next->GetValue() : GameBase::Command::Ptr(nullptr);
 	}
 
-	Command::Ptr CommandHistory::MoveForward()
+	Command::Ptr CommandHistory::GetPrewCommand()
 	{
-		if (IsOnHead()) {
-			return GameBase::Command::Ptr(nullptr);
+		return cursor.prew ? cursor.prew->GetValue() : GameBase::Command::Ptr(nullptr);
+	}
+
+	void CommandHistory::MoveForward()
+	{
+		if (!IsOnHead()) {
+			cursor.prew = cursor.next;
+			cursor.next = cursor.next->GetPrevNode();
 		} else {
-			currentCommand = currentCommand->GetPrevNode();
-			return GetCurrentCommand();
+			FError::Throwf(TEXT("Move forvard from the head of the history"));
 		}
 	}
 
-	Command::Ptr CommandHistory::MoveBackward()
+	void CommandHistory::MoveBackward()
 	{
-		if (IsOnTail()) {
-			return GameBase::Command::Ptr(nullptr);
-		} else {
-			currentCommand = currentCommand->GetNextNode();
-			return GetCurrentCommand();
+		if (!IsOnTail()) {
+			cursor.next = cursor.prew;
+			cursor.prew = cursor.prew->GetNextNode();
+		}
+		else {
+			FError::Throwf(TEXT("Move backward from the tail of the history"));
 		}
 	}
 
 	void CommandHistory::AddCommand(Command::Ref command)
 	{
-		// if we have some commands after the current remove them
-		if (!IsEmpty() && !IsOnHead())
+		// if we have some commands after the current then remove them
+		if (!IsOnHead())
 		{
 			auto headCommand = commands.GetHead();
-			while (headCommand != currentCommand)
+			while (headCommand != cursor.prew)
 			{
 				commands.RemoveNode(headCommand);
 				headCommand = commands.GetHead();
@@ -63,7 +69,8 @@ namespace GameBase
 		}
 
 		commands.AddHead(command);
-		currentCommand = commands.GetHead();
+		cursor.prew = commands.GetHead();
+		cursor.next = nullptr;
 	}
 
 } // namespace GameBase

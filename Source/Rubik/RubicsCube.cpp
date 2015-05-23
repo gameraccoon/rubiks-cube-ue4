@@ -39,43 +39,51 @@ void ARubicsCube::BeginPlay()
 	parts->SetMainRotation(this->GetActorRotation());
 
 	InitCube();
+
+	progress = 0.0f;
+	currentAxis = 0;
+	currentStep = 0;
+	steps = 0;
+	front = true;
 }
 
 // Called every frame
 void ARubicsCube::Tick( float DeltaTime )
 {
+	const int COMMANDS_SIZE = 5;
 	Super::Tick( DeltaTime );
 
 	progress += DeltaTime * 0.5;
 
-	while (progress >= 1.0f || !commandHistory.GetCurrentCommand().IsValid())
+	while (progress >= 1.0f || !currentCommand.IsValid())
 	{
-		GameBase::Command::Ptr currentCommand = commandHistory.GetCurrentCommand();
 		if (currentCommand.IsValid())
 		{
 			if (front)
 			{
-				if (steps > 5)
+				if (steps < COMMANDS_SIZE)
 				{
-					front = false;
+					currentCommand->Execute();
+					commandHistory.AddCommand(currentCommand.ToSharedRef());
 				}
 				else
 				{
-					currentCommand->Execute();
+					front = false;
 				}
 			}
 			else
 			{
-				commandHistory.MoveBackward();
+				currentCommand = commandHistory.GetPrewCommand();
 
-				if (commandHistory.IsOnTail())
+				if (currentCommand.IsValid())
 				{
-					front = true;
-					steps = 0;
+					commandHistory.MoveBackward();
+					currentCommand->Unexecute();
 				}
 				else
 				{
-					commandHistory.GetCurrentCommand()->Unexecute();
+					front = true;
+					steps = 0;
 				}
 			}
 		}
@@ -84,6 +92,7 @@ void ARubicsCube::Tick( float DeltaTime )
 			front = true;
 		}
 
+		// add new command
 		if (front)
 		{
 			currentStep = FMath::Rand() % GridSize;
@@ -115,8 +124,7 @@ void ARubicsCube::Tick( float DeltaTime )
 				FError::Throwf(TEXT("Unusual axis"));
 				break;
 			}
-
-			commandHistory.AddCommand(RC::RotationCommand::Create(this, axis, currentStep));
+			currentCommand = RC::RotationCommand::Create(this, axis, currentStep);
 			++steps;
 		}
 
@@ -126,7 +134,7 @@ void ARubicsCube::Tick( float DeltaTime )
 		}
 	}
 
-	commandHistory.GetCurrentCommand()->SetProgress(front ? progress : 1.0 - progress);
+	currentCommand->SetProgress(front ? progress : 1.0 - progress);
 
 	UpdateParts();
 }
