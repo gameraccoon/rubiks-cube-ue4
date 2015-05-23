@@ -34,15 +34,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Parameters")
 		FName Type;
 
-	UPROPERTY(EditAnywhere, Category = "CubeComponents")
-		UStaticMesh * BlockBoard1;
-
-	UPROPERTY(EditAnywhere, Category = "CubeComponents")
-		UStaticMesh * BlockBoard2;
-
-	UPROPERTY(EditAnywhere, Category = "CubeComponents")
-		UStaticMesh * BlockBoard3;
-
 	UPROPERTY(EditAnywhere, Category = "Colors")
 		UMaterialInstanceConstant * SideColor1;
 
@@ -82,7 +73,7 @@ private:
 	void InitCube();
 	void InitCubePart(UWorld * const world, const RC::CubeParts::Coord& coord);
 
-	UMaterialInstanceConstant * GetSideMaterial(const RC::CubeParts::Coord& coord, int sideNumber);
+	UMaterialInstanceConstant * GetSideMaterial(const FVector& sidePos);
 	void AttachSidesToSockets(UWorld * const world, AActor * actor, const RC::CubeParts::Coord& coord);
 
 	friend class RC::CubeCommand;

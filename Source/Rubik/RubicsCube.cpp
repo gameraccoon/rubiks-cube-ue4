@@ -157,46 +157,37 @@ void ARubicsCube::InitCube()
 	}
 }
 
-UMaterialInstanceConstant * ARubicsCube::GetSideMaterial(const RC::CubeParts::Coord& coord, int sideNumber)
+UMaterialInstanceConstant * ARubicsCube::GetSideMaterial(const FVector& sidePos)
 {
-	int colorIdx = 5;
-
-	if (coord.x == 0 && sideNumber == 0)
+	float sideOffset = InitialBlockSize * ((GridSize - 1) * 0.6);
+	if (sidePos.X > sideOffset)
 	{
-		colorIdx = 0;
+		return SideColor1;
 	}
-	else if (coord.x == GridSize - 1 && sideNumber == 0)
+	else if (sidePos.X < -sideOffset)
 	{
-		colorIdx = 1;
+		return SideColor2;
+	}
+	else if (sidePos.Y > sideOffset)
+	{
+		return SideColor3;
+	}
+	else if (sidePos.Y < -sideOffset)
+	{
+		return SideColor4;
+	}
+	else if (sidePos.Z > sideOffset)
+	{
+		return SideColor5;
+	}
+	else if (sidePos.Z < -sideOffset)
+	{
+		return SideColor6;
 	}
 	else
 	{
-		colorIdx = 2;
-	}
-
-	switch (colorIdx)
-	{
-	case 0:
-		return SideColor1;
-		break;
-	case 1:
-		return SideColor2;
-		break;
-	case 2:
-		return SideColor3;
-		break;
-	case 3:
-		return SideColor4;
-		break;
-	case 4:
-		return SideColor5;
-		break;
-	case 5:
+		FError::Throwf(TEXT("Wrong side location"));
 		return SideColor6;
-		break;
-	default:
-		return nullptr;
-		break;
 	}
 }
 
@@ -209,8 +200,9 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 	{
 		AActor * side = world->SpawnActor<ARubiksSide_Standart>(ARubiksSide_Standart::StaticClass());
 		side->AttachRootComponentTo(component, sName);
+		FVector relativeCoord = (-this->GetActorRotation()).RotateVector(component->GetSocketLocation(sName) - this->GetActorLocation());
 
-		UMaterialInstanceConstant * material = GetSideMaterial(coord, sideNumber);
+		UMaterialInstanceConstant * material = GetSideMaterial(relativeCoord);
 		dynamic_cast<UStaticMeshComponent*>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);
 
 		++sideNumber;
@@ -257,7 +249,7 @@ void ARubicsCube::InitCubePart(UWorld * const world, const RC::CubeParts::Coord&
 
 	if (actor != nullptr)
 	{
-		AttachSidesToSockets(world, actor, coord);
 		parts->InsertPart(actor, coord);
+		AttachSidesToSockets(world, actor, coord);
 	}
 }
