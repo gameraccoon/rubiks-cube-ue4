@@ -63,6 +63,6 @@ namespace RC
 		}
 
 		ARubicsCube* cube = GetTarget();
-		cube->parts->RotateSlice(axis, layerIndex, progress * 90.0f, FVector());
+		cube->parts->RotateSlice(axis, layerIndex, progress * 90.0f);
 	}
 }

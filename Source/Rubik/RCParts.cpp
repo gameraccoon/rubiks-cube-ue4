@@ -26,18 +26,26 @@ namespace RC
 			FError::Throwf(TEXT("Part is NULL"));
 		}
 
-		FVector location(FVector(pos.x, pos.y, pos.z) * initialBlockSize + centerShift);
+		FVector location(FVector(pos.x, pos.y, pos.z) * initialBlockSize);
 		FRotator roataion(GetPartInitialRotation(pos));
 
-		part->SetActorLocation(mainLocation + mainRotation.RotateVector(location));
+		part->SetActorLocation(mainLocation + mainRotation.RotateVector(location + centerShift));
 		part->SetActorRotation(mainRotation + roataion);
 
 		partInfo.ptr = part;
-		partInfo.initialLocation = location;
-		partInfo.initialRotation = FQuat(roataion);
+		partInfo.localLocation = location + centerShift;
+		partInfo.localRotation = FQuat(roataion);
+		partInfo.baseLocation = partInfo.localLocation;
+		partInfo.baseRotation = partInfo.localRotation;
 	}
 
-	void CubeParts::RotateSlice(RotationAxis axis, int pos, float angle, const FVector& center)
+	void CubeParts::RotateSlice(RotationAxis axis, int pos, float angle)
+	{
+		Slice slice = GetSlice(axis, pos);
+		RotateSlice(slice, axis, angle);
+	}
+
+	void CubeParts::RotateSlice(Slice& slice, RotationAxis axis, float angle)
 	{
 		const bool isXMove = axis.IsX();
 		const bool isYMove = axis.IsY();
@@ -60,20 +68,37 @@ namespace RC
 			rotation = FRotator(0.0f, isReversed ? -angle : angle, 0.0f);
 		}
 
-		Slice slice = GetSlice(axis, pos);
 		for (unsigned int y = 0, ySize = slice.getWidth(); y < ySize; ++y)
 		{
 			for (unsigned int x = 0, xSize = slice.getLength(); x < xSize; ++x)
 			{
-				RotatePart(slice[x][y], rotation, center);
+				RotatePart(slice[x][y], rotation);
 			}
 		}
 	}
 
+	void CubeParts::MakeSnapshot(Slice& slice)
+	{
+		for (unsigned int y = 0, ySize = slice.getWidth(); y < ySize; ++y)
+		{
+			for (unsigned int x = 0, xSize = slice.getLength(); x < xSize; ++x)
+			{
+				PartInfo *partinfo = slice[x][y];
+				if (partinfo->ptr)
+				{
+					partinfo->baseLocation = partinfo->localLocation;
+					partinfo->baseRotation = partinfo->localRotation;
+				}
+			}
+		}
+	}
 
 	void CubeParts::RenewPartsLocations(RotationAxis axis, int pos)
 	{
 		Slice slice = GetSlice(axis, pos);
+
+		RotateSlice(slice, axis, 90.0f);
+		MakeSnapshot(slice);
 
 		const int N = slice.getWidth();
 
@@ -101,34 +126,9 @@ namespace RC
 				}
 			}
 		}
-
-		for (unsigned int z = 0, zSize = parts.getHeight(); z < zSize; ++z)
-		{
-			for (unsigned int y = 0, ySize = parts.getWidth(); y < ySize; ++y)
-			{
-				for (unsigned int x = 0, xSize = parts.getLength(); x < xSize; ++x)
-				{
-					if (!parts[x][y][z].ptr)
-					{
-						continue;
-					}
-
-					FVector location(FVector(x, y, z) * initialBlockSize + centerShift);
-					FRotator roataion(GetPartInitialRotation(Coord(x, y, z)));
-
-					PartInfo &partInfo = parts[x][y][z];
-					partInfo.ptr->SetActorLocation(mainLocation + mainRotation.RotateVector(location));
-					//partInfo.ptr->SetActorRotation(mainRotation + roataion);
-
-					auto* partPtr = partInfo.ptr;
-					partInfo.initialRotation = FQuat(roataion);
-					partInfo.initialLocation = location;
-				}
-			}
-		}
 	}
 
-	void CubeParts::RotatePart(PartInfo* part, const FRotator& rotation, const FVector& center)
+	void CubeParts::RotatePart(PartInfo* part, const FRotator& rotation)
 	{
 		if (!part->ptr)
 		{
@@ -136,8 +136,11 @@ namespace RC
 		}
 
 		FQuat rotationQuat(rotation);
-		part->ptr->SetActorLocation(mainLocation + mainRotation.RotateVector(rotationQuat.RotateVector(part->initialLocation)));
-		part->ptr->SetActorRotation(mainRotation + (rotationQuat * part->initialRotation).Rotator());
+		part->localLocation = rotationQuat.RotateVector(part->baseLocation);
+		part->localRotation = rotationQuat * part->baseRotation;
+
+		part->ptr->SetActorLocation(mainLocation + mainRotation.RotateVector(part->localLocation));
+		part->ptr->SetActorRotation(mainRotation + (part->localRotation).Rotator());
 	}
 
 	CubeParts::Slice CubeParts::GetSlice(RotationAxis axis, int pos)
@@ -325,6 +328,5 @@ namespace RC
 		FError::Throwf(TEXT("Wrong actor position to rotate"));
 		return FRotator::ZeroRotator;
 	}
-
 
 }; // namespace RC

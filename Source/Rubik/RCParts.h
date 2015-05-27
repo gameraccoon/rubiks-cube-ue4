@@ -18,7 +18,7 @@ namespace RC
 		CubeParts(int length, int width, int height, float initialBlockSize, FVector centerShift);
 
 		void InsertPart(AActor* part, Coord pos);
-		void RotateSlice(RotationAxis axis, int pos, float angle, const FVector& center);
+		void RotateSlice(RotationAxis axis, int pos, float angle);
 		void RenewPartsLocations(RotationAxis axis, int pos);
 
 		inline void SetMainLocation(const FVector& location) { mainLocation = location; };
@@ -29,8 +29,11 @@ namespace RC
 
 		struct PartInfo {
 			PartPtr ptr;
-			FQuat initialRotation;
-			FVector initialLocation;
+			FQuat baseRotation;
+			FVector baseLocation;
+
+			FQuat localRotation;
+			FVector localLocation;
 
 			PartInfo() : ptr(nullptr) {}
 		};
@@ -38,9 +41,11 @@ namespace RC
 		typedef GameBase::Matrix<PartInfo*> Slice;
 
 	private:
-		void RotatePart(PartInfo* part, const FRotator& rotation, const FVector& center);
+		void RotatePart(PartInfo* part, const FRotator& rotation);
 		Slice GetSlice(RotationAxis axis, int pos);
 		FRotator GetPartInitialRotation(const Coord& coord);
+		void RotateSlice(Slice& slice, RotationAxis axis, float angle);
+		void MakeSnapshot(Slice& slice);
 
 	private:
 		GameBase::Array3D<PartInfo> parts;
