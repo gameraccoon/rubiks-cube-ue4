@@ -36,7 +36,7 @@ void ARubicsCube::BeginPlay()
 	int currentStep = 0;
 
 	parts->SetMainLocation(this->GetActorLocation());
-	parts->SetMainRotation(this->GetActorRotation());
+	parts->SetMainRotation(FQuat(this->GetActorRotation()));
 
 	InitCube();
 
@@ -136,13 +136,13 @@ void ARubicsCube::Tick( float DeltaTime )
 
 	currentCommand->SetProgress(front ? progress : 1.0 - progress);
 
-	UpdateParts();
+	//UpdateParts();
 }
 
 void ARubicsCube::UpdateParts()
 {
 	parts->SetMainLocation(this->GetActorLocation());
-	parts->SetMainRotation(this->GetActorRotation());
+	parts->SetMainRotation(FQuat(this->GetActorRotation()));
 }
 
 void ARubicsCube::InitCube()
@@ -208,7 +208,7 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 	{
 		AActor * side = world->SpawnActor<ARubiksSide_Standart>(ARubiksSide_Standart::StaticClass());
 		side->AttachRootComponentTo(component, sName);
-		FVector relativeCoord = (-this->GetActorRotation()).RotateVector(component->GetSocketLocation(sName) - this->GetActorLocation());
+		FVector relativeCoord = (FQuat(this->GetActorRotation()).Inverse()).RotateVector(component->GetSocketLocation(sName) - this->GetActorLocation());
 
 		UMaterialInstanceConstant * material = GetSideMaterial(relativeCoord);
 		dynamic_cast<UStaticMeshComponent*>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);

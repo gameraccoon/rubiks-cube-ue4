@@ -22,7 +22,7 @@ namespace RC
 		void RenewPartsLocations(RotationAxis axis, int pos);
 
 		inline void SetMainLocation(const FVector& location) { mainLocation = location; };
-		inline void SetMainRotation(const FRotator& rotation) { mainRotation = rotation; };
+		inline void SetMainRotation(const FQuat& rotation) { mainRotation = rotation; };
 
 	private:
 		typedef AActor* PartPtr;
@@ -53,6 +53,6 @@ namespace RC
 		FVector centerShift;
 
 		FVector mainLocation;
-		FRotator mainRotation;
+		FQuat mainRotation;
 	};
 } // namespace GameBase
