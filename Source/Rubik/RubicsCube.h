@@ -62,13 +62,22 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaSeconds) override;
 
-	void UpdateParts();
+	inline void ScheduleUpdateParts() { IsNeedUpdateParts = true; }
 
 private:
 	GameBase::CommandHistory commandHistory;
 	GameBase::Command::Ptr currentCommand;
 
 	TSharedPtr<RC::CubeParts> parts;
+
+	bool IsNeedUpdateParts;
+
+	// test values
+	float progress;
+	int currentAxis;
+	int currentStep;
+	int steps;
+	bool front;
 
 private:
 	void InitCube();
@@ -77,14 +86,9 @@ private:
 	UMaterialInstanceConstant * GetSideMaterial(const FVector& sidePos);
 	void AttachSidesToSockets(UWorld * const world, AActor * actor, const RC::CubeParts::Coord& coord);
 
+	void UpdateParts();
+
 	friend class RC::CubeCommand;
 	friend class RC::RotationCommand;
 
-private:
-	// test values
-	float progress;
-	int currentAxis;
-	int currentStep;
-	int steps;
-	bool front;
 };

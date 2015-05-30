@@ -57,21 +57,17 @@ bool ARubiksPlayerController::InputAxis(FKey Key, float Delta, float DeltaTime, 
 		GetInputMouseDelta(mouseDelta.X, mouseDelta.Y);
 		RotateCube(FRotator(-mouseDelta.Y, -mouseDelta.X, 0.0f));
 	}
-	else
+	else if (IsInputKeyDown(FKey("LeftMouseButton")))
 	{
 	}
 
 	Super::InputAxis(Key, Delta, DeltaTime, NumSamples, bGamepad);
 	return true;
-	//if (IsInputKeyDown(FKey("LeftMouseButton")))
-	//{
-	//}
-
 }
 
 bool ARubiksPlayerController::InputMotion(const FVector& Tilt, const FVector& RotationRate, const FVector& Gravity, const FVector& Acceleration)
 {
-	SetCameraRotation(Gravity.Rotation());
+	//SetCameraRotation(Gravity.Rotation());
 	// need realization
 	return true;
 }
@@ -85,7 +81,7 @@ void ARubiksPlayerController::RotateCube(const FRotator& rotation)
 		FQuat fullRotation = FQuat(rotation) * FQuat(mainCube->GetActorRotation());
 		FQuat partialRotation = FQuat::FastLerp(mainCube->GetActorRotation().Quaternion(), fullRotation, 0.3);
 		mainCube->SetActorRotation(partialRotation.Rotator());
-		mainCube->UpdateParts();
+		mainCube->ScheduleUpdateParts();
 	}
 }
 

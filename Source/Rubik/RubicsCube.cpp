@@ -18,6 +18,7 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	, InitialBlockSize(23.0f)
 	, InitialSize(80.0f)
 	, Type("Standart")
+	, IsNeedUpdateParts(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -134,16 +135,20 @@ void ARubicsCube::Tick( float DeltaTime )
 		}
 	}
 
-	currentCommand->SetProgress(front ? progress : 1.0 - progress);
+	UpdateParts();
 
-	//UpdateParts();
+	currentCommand->SetProgress(front ? progress : 1.0 - progress);
 }
 
 void ARubicsCube::UpdateParts()
 {
-	parts->SetMainLocation(this->GetActorLocation());
-	parts->SetMainRotation(FQuat(this->GetActorRotation()));
-	parts->UpdateAllParts();
+	if (IsNeedUpdateParts)
+	{
+		parts->SetMainLocation(this->GetActorLocation());
+		parts->SetMainRotation(FQuat(this->GetActorRotation()));
+		parts->UpdateAllParts();
+		IsNeedUpdateParts = false;
+	}
 }
 
 void ARubicsCube::InitCube()
