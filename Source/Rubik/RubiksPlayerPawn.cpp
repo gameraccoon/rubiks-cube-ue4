@@ -8,7 +8,8 @@
 ARubiksPlayerPawn::ARubiksPlayerPawn()
 	: CameraPitch(0)
 	, CameraYaw(0)
-	, CameraOffset(300.0f)
+	, CameraRoll(0)
+	, CameraOffset(150.0f)
 	, Cube(nullptr)
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -54,5 +55,6 @@ void ARubiksPlayerPawn::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
 
 	// Make Camera look at Target
 	OutResult.Rotation = (CharacterLocation - CameraLocation).Rotation();
+	OutResult.Rotation.Roll = CameraRoll;
 }
 

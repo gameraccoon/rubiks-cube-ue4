@@ -28,7 +28,7 @@ public:
 	
 public:
 	/** Camera pitch and yaw rotations, updated by mouse axis in player input */
-	float CameraPitch, CameraYaw;
+	float CameraPitch, CameraYaw, CameraRoll;
 	AActor* Cube;
 	float CameraOffset;
 

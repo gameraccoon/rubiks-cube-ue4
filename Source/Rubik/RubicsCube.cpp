@@ -51,7 +51,7 @@ void ARubicsCube::BeginPlay()
 // Called every frame
 void ARubicsCube::Tick( float DeltaTime )
 {
-	const int COMMANDS_SIZE = 5;
+	const int COMMANDS_SIZE = 500;
 	Super::Tick( DeltaTime );
 
 	progress += DeltaTime * 0.5;

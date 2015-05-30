@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "MultiTouchHelper.h"
 #include "GameFramework/PlayerController.h"
 #include "RubiksPlayerController.generated.h"
 
@@ -33,8 +34,12 @@ private:
 	bool IsAllComponentsReady() const;
 
 private:
-	FVector2D LastTouchPosition;
 	/// Cube that we control at this time
 	ARubicsCube* mainCube;
 	ARubiksPlayerPawn* playerPawn;
+	Utils::MultitouchHelper Multitouch;
+
+	// for optimization
+	uint32 LastTouchesMax = 0;
+	uint32 ThisTouchesMax = 0;
 };
