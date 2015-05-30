@@ -205,6 +205,28 @@ namespace RC
 		return slice;
 	}
 
+	void CubeParts::UpdateAllParts()
+	{
+		for (unsigned int z = 0, zSize = parts.getHeight(); z < zSize; ++z)
+		{
+			for (unsigned int y = 0, ySize = parts.getWidth(); y < ySize; ++y)
+			{
+				for (unsigned int x = 0, xSize = parts.getLength(); x < xSize; ++x)
+				{
+					PartInfo &part = parts[x][y][z];
+					if (part.ptr)
+					{
+						part.localLocation = part.baseLocation;
+						part.localRotation = part.baseRotation;
+
+						part.ptr->SetActorLocation(mainLocation + mainRotation.RotateVector(part.localLocation));
+						part.ptr->SetActorRotation((mainRotation * part.localRotation).Rotator());
+					}
+				}
+			}
+		}
+	}
+
 	// ToDo: find any better way to calculate rotation
 	FRotator CubeParts::GetPartInitialRotation(const Coord& coord)
 	{

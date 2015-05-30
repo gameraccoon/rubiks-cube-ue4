@@ -143,6 +143,7 @@ void ARubicsCube::UpdateParts()
 {
 	parts->SetMainLocation(this->GetActorLocation());
 	parts->SetMainRotation(FQuat(this->GetActorRotation()));
+	parts->UpdateAllParts();
 }
 
 void ARubicsCube::InitCube()

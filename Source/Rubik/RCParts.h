@@ -24,6 +24,8 @@ namespace RC
 		inline void SetMainLocation(const FVector& location) { mainLocation = location; };
 		inline void SetMainRotation(const FQuat& rotation) { mainRotation = rotation; };
 
+		void UpdateAllParts();
+
 	private:
 		typedef AActor* PartPtr;
 
