@@ -4,6 +4,7 @@
 #include "RubiksPlayerController.h"
 #include "RubicsCube.h"
 #include "RubiksPlayerPawn.h"
+#include "RubikPart.h"
 
 bool ARubiksPlayerController::InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad)
 {
@@ -37,6 +38,12 @@ bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, c
 
 	if (Type == ETouchType::Began)
 	{
+		if (IsCubeUnderPoint(TouchLocation))
+		{
+			RotationsLockIndex = Handle;
+			return true;
+		}
+
 		Multitouch.AddTouch(Handle, TouchLocation);
 		if (ThisTouchesMax < Handle) { ThisTouchesMax = Handle; } // optimization
 	}
@@ -49,6 +56,16 @@ bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, c
 	{
 		Multitouch.RemoveTouch(Handle);
 		if (LastTouchesMax == Handle) { LastTouchesMax = ThisTouchesMax; } // optimization
+
+		if (Handle == RotationsLockIndex)
+		{
+			RotationsLockIndex = -1;
+		}
+	}
+
+	if (RotationsLockIndex != -1 && Handle != RotationsLockIndex)
+	{
+		return true;
 	}
 
 	if (LastTouchesMax < ThisTouchesMax) { LastTouchesMax = ThisTouchesMax; } // optimization
@@ -67,16 +84,6 @@ bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, c
 	{
 		float spin = Multitouch.GetSpinAngle();
 		RotateCube(FRotator(0.0f, 0.0f, -spin));
-
-		//float pitch = Multitouch.GetPitchSize();
-		//if (pitch > 0.0f)
-		//{
-		//	playerPawn->CameraOffset *= 1.01;
-		//}
-		//else if (pitch < 0.0f)
-		//{
-		//	playerPawn->CameraOffset /= 1.01;
-		//}
 	}
 
 	return true;
@@ -175,4 +182,29 @@ void ARubiksPlayerController::TryToAttachCubeToPawn()
 bool ARubiksPlayerController::IsAllComponentsReady() const
 {
 	return mainCube && playerPawn;
+}
+
+bool ARubiksPlayerController::IsCubeUnderPoint(const FVector2D& point) const
+{
+	FVector location, direction;
+	DeprojectScreenPositionToWorld(point.X, point.Y, location, direction);
+
+	FCollisionQueryParams TraceParams(FName(TEXT("")), true, this);
+	TraceParams.bTraceAsyncScene = true;
+	TraceParams.bReturnPhysicalMaterial = false;
+	TraceParams.bTraceComplex = true;
+
+	FHitResult hit(ForceInit);
+	float endOffset = 300;
+	FVector target = location + (direction * endOffset);
+	GetWorld()->LineTraceSingle(hit, location, target, ECC_GameTraceChannel1, TraceParams);
+
+	if (hit.Actor.IsValid() && hit.GetActor()->IsA(ARubikPart::StaticClass()))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }

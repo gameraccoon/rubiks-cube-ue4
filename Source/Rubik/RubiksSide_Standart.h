@@ -3,10 +3,11 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "RubikPart.h"
 #include "RubiksSide_Standart.generated.h"
 
 UCLASS()
-class RUBIK_API ARubiksSide_Standart : public AActor
+class RUBIK_API ARubiksSide_Standart : public ARubikPart
 {
 	GENERATED_BODY()
 	

@@ -65,19 +65,13 @@ public:
 	inline void ScheduleUpdateParts() { IsNeedUpdateParts = true; }
 
 private:
-	GameBase::CommandHistory commandHistory;
-	GameBase::Command::Ptr currentCommand;
+	GameBase::CommandHistory CommandHistory;
+	GameBase::Command::Ptr CurrentCommand;
+	float CommandProgress;
 
-	TSharedPtr<RC::CubeParts> parts;
+	TSharedPtr<RC::CubeParts> Parts;
 
 	bool IsNeedUpdateParts;
-
-	// test values
-	float progress;
-	int currentAxis;
-	int currentStep;
-	int steps;
-	bool front;
 
 private:
 	void InitCube();

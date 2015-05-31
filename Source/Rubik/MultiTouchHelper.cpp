@@ -19,8 +19,12 @@ namespace Utils
 
 	void MultitouchHelper::RemoveTouch(uint32 Handle)
 	{
-		Touches.Remove(Handle);
-		ResetAllParameters();
+		int count = Touches.Remove(Handle);
+		
+		if (count > 0)
+		{
+			ResetAllParameters();
+		}
 	}
 
 	void MultitouchHelper::MoveTouch(uint32 Handle, FVector2D TouchLocation)
@@ -30,9 +34,9 @@ namespace Utils
 		{
 			touchInfo->LastFrameDelta = TouchLocation - touchInfo->TouchLocation;
 			touchInfo->TouchLocation = TouchLocation;
-		}
 
-		ResetAllParameters();
+			ResetAllParameters();
+		}
 	}
 
 	int MultitouchHelper::GetTouchesCount() const

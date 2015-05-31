@@ -31,7 +31,7 @@ namespace RC
 		SetProgress(1.0f);
 
 		ARubicsCube* cube = GetTarget();
-		cube->parts->RenewPartsLocations(axis, layerIndex);
+		cube->Parts->RenewPartsLocations(axis, layerIndex);
 	}
 
 	void RotationCommand::Unexecute()
@@ -46,7 +46,7 @@ namespace RC
 		SetProgress(0.0f);
 
 		ARubicsCube* cube = GetTarget();
-		cube->parts->RenewPartsLocations(-axis, cube->GridSize - 1 - layerIndex);
+		cube->Parts->RenewPartsLocations(-axis, cube->GridSize - 1 - layerIndex);
 	}
 
 	bool RotationCommand::IsContinious()
@@ -63,6 +63,6 @@ namespace RC
 		}
 
 		ARubicsCube* cube = GetTarget();
-		cube->parts->RotateSlice(axis, layerIndex, progress * 90.0f);
+		cube->Parts->RotateSlice(axis, layerIndex, progress * 90.0f);
 	}
 }

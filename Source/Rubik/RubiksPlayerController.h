@@ -33,6 +33,8 @@ private:
 	void TryToAttachCubeToPawn();
 	bool IsAllComponentsReady() const;
 
+	bool IsCubeUnderPoint(const FVector2D& point) const;
+
 private:
 	/// Cube that we control at this time
 	ARubicsCube* mainCube;
@@ -42,4 +44,6 @@ private:
 	// for optimization
 	uint32 LastTouchesMax = 0;
 	uint32 ThisTouchesMax = 0;
+
+	int RotationsLockIndex = -1;
 };

@@ -30,123 +30,47 @@ void ARubicsCube::BeginPlay()
 {
 	Super::BeginPlay();
 
-	parts = TSharedPtr<RC::CubeParts>(new RC::CubeParts(GridSize, GridSize, GridSize, InitialBlockSize, -FVector(1.0f, 1.0f, 1.0f) * 0.5 * InitialBlockSize * (GridSize - 1)));
+	Parts = TSharedPtr<RC::CubeParts>(new RC::CubeParts(GridSize, GridSize, GridSize, InitialBlockSize, -FVector(1.0f, 1.0f, 1.0f) * 0.5 * InitialBlockSize * (GridSize - 1)));
 
-	progress = 0.0f;
-	int currentAxis = 0;
-	int currentStep = 0;
-
-	parts->SetMainLocation(this->GetActorLocation());
-	parts->SetMainRotation(FQuat(this->GetActorRotation()));
+	Parts->SetMainLocation(this->GetActorLocation());
+	Parts->SetMainRotation(FQuat(this->GetActorRotation()));
 
 	InitCube();
 
-	progress = 0.0f;
-	currentAxis = 0;
-	currentStep = 0;
-	steps = 0;
-	front = true;
+	CommandProgress = 0.0f;
 }
 
 // Called every frame
 void ARubicsCube::Tick( float DeltaTime )
 {
-	const int COMMANDS_SIZE = 500;
-	Super::Tick( DeltaTime );
+	Super::Tick(DeltaTime);
 
-	progress += DeltaTime * 0.5;
-
-	while (progress >= 1.0f || !currentCommand.IsValid())
+	if (CurrentCommand.IsValid())
 	{
-		if (currentCommand.IsValid())
+		CommandProgress += DeltaTime;
+		if (CommandProgress < 1.0f)
 		{
-			if (front)
-			{
-				if (steps < COMMANDS_SIZE)
-				{
-					currentCommand->Execute();
-					commandHistory.AddCommand(currentCommand.ToSharedRef());
-				}
-				else
-				{
-					front = false;
-				}
-			}
-			else
-			{
-				currentCommand = commandHistory.GetPrewCommand();
-
-				if (currentCommand.IsValid())
-				{
-					commandHistory.MoveBackward();
-					currentCommand->Unexecute();
-				}
-				else
-				{
-					front = true;
-					steps = 0;
-				}
-			}
+			CurrentCommand->SetProgress(CommandProgress);
 		}
 		else
 		{
-			front = true;
-		}
-
-		// add new command
-		if (front)
-		{
-			currentStep = FMath::Rand() % GridSize;
-			currentAxis = FMath::Rand() % 6;
-
-			RC::RotationAxis axis;
-
-			switch (currentAxis)
-			{
-			case 0:
-				axis = RC::RotationAxis::FX;
-				break;
-			case 1:
-				axis = RC::RotationAxis::FY;
-				break;
-			case 2:
-				axis = RC::RotationAxis::FZ;
-				break;
-			case 3:
-				axis = RC::RotationAxis::RX;
-				break;
-			case 4:
-				axis = RC::RotationAxis::RY;
-				break;
-			case 5:
-				axis = RC::RotationAxis::RZ;
-				break;
-			default:
-				FError::Throwf(TEXT("Unusual axis"));
-				break;
-			}
-			currentCommand = RC::RotationCommand::Create(this, axis, currentStep);
-			++steps;
-		}
-
-		if (progress >= 1.0f)
-		{
-			progress -= 1.0f;
+			CurrentCommand->Execute();
+			CommandHistory.AddCommand(CurrentCommand.ToSharedRef());
+			CurrentCommand = nullptr;
+			CommandProgress = 0.0f;
 		}
 	}
 
 	UpdateParts();
-
-	currentCommand->SetProgress(front ? progress : 1.0 - progress);
 }
 
 void ARubicsCube::UpdateParts()
 {
 	if (IsNeedUpdateParts)
 	{
-		parts->SetMainLocation(this->GetActorLocation());
-		parts->SetMainRotation(FQuat(this->GetActorRotation()));
-		parts->UpdateAllParts();
+		Parts->SetMainLocation(this->GetActorLocation());
+		Parts->SetMainRotation(FQuat(this->GetActorRotation()));
+		Parts->UpdateAllParts();
 		IsNeedUpdateParts = false;
 	}
 }
@@ -263,7 +187,7 @@ void ARubicsCube::InitCubePart(UWorld * const world, const RC::CubeParts::Coord&
 
 	if (actor != nullptr)
 	{
-		parts->InsertPart(actor, coord);
+		Parts->InsertPart(actor, coord);
 		AttachSidesToSockets(world, actor, coord);
 	}
 }
