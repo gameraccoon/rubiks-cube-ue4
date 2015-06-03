@@ -49,6 +49,10 @@ namespace RC
 		void RotateSlice(Slice& slice, RotationAxis axis, float angle);
 		void MakeSnapshot(Slice& slice);
 
+		void RearrangeControls();
+		void RearrangePartControls(AActor * side, const Coord& coord);
+		void RearrangeSideControls(AActor * side, const Coord& coord);
+
 	private:
 		GameBase::Array3D<PartInfo> parts;
 		float initialBlockSize;

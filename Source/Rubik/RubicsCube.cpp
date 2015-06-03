@@ -45,6 +45,8 @@ void ARubicsCube::Tick( float DeltaTime )
 {
 	Super::Tick(DeltaTime);
 
+	UpdateParts();
+
 	if (CurrentCommand.IsValid())
 	{
 		CommandProgress += DeltaTime;
@@ -60,8 +62,6 @@ void ARubicsCube::Tick( float DeltaTime )
 			CommandProgress = 0.0f;
 		}
 	}
-
-	UpdateParts();
 }
 
 void ARubicsCube::UpdateParts()
@@ -133,17 +133,15 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 {
 	UStaticMeshComponent* component = dynamic_cast<UStaticMeshComponent*>(actor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 	TArray<FName> socketNames = component->GetAllSocketNames();
-	int sideNumber = 0;
 	for (const FName& sName : socketNames)
 	{
 		AActor * side = world->SpawnActor<ARubiksSide_Standart>(ARubiksSide_Standart::StaticClass());
 		side->AttachRootComponentTo(component, sName);
+		dynamic_cast<ARubiksBlock*>(actor)->Sides.Push(side);
 		FVector relativeCoord = (FQuat(this->GetActorRotation()).Inverse()).RotateVector(component->GetSocketLocation(sName) - this->GetActorLocation());
 
 		UMaterialInstanceConstant * material = GetSideMaterial(relativeCoord);
 		dynamic_cast<UStaticMeshComponent*>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);
-
-		++sideNumber;
 	}
 }
 
@@ -190,4 +188,14 @@ void ARubicsCube::InitCubePart(UWorld * const world, const RC::CubeParts::Coord&
 		Parts->InsertPart(actor, coord);
 		AttachSidesToSockets(world, actor, coord);
 	}
+}
+
+bool ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
+{
+	if (!CurrentCommand.IsValid())
+	{
+		CurrentCommand = RC::RotationCommand::Create(this, axis, layerIndex);
+		return true;
+	}
+	return false;
 }

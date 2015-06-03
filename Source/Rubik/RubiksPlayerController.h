@@ -4,10 +4,35 @@
 
 #include "MultiTouchHelper.h"
 #include "GameFramework/PlayerController.h"
+#include "RCRotationAxis.h"
 #include "RubiksPlayerController.generated.h"
 
 class ARubicsCube;
 class ARubiksPlayerPawn;
+
+namespace RC
+{
+	struct ScreenMovementDiraction
+	{
+		ScreenMovementDiraction()
+			: direction(0.0f, 0.0f)
+			, axis()
+			, layerIndex(-1)
+		{
+		}
+
+		ScreenMovementDiraction(const FVector2D& _direction, RC::RotationAxis _axis, int _layerIndex)
+			: direction(_direction)
+			, axis(_axis)
+			, layerIndex(_layerIndex)
+		{
+		}
+
+		FVector2D direction;
+		RC::RotationAxis axis;
+		int layerIndex;
+	};
+}
 
 /**
  * 
@@ -35,6 +60,11 @@ private:
 
 	bool IsCubeUnderPoint(const FVector2D& point) const;
 
+	void StartRotateCubePart(const FVector2D& TouchLocation);
+	void TryToRotateCubePart(const FVector2D& TouchLocation);
+
+	AActor* GetActorUnderPoint(const FVector2D& point) const;
+
 private:
 	/// Cube that we control at this time
 	ARubicsCube* mainCube;
@@ -46,4 +76,7 @@ private:
 	uint32 ThisTouchesMax = 0;
 
 	int RotationsLockIndex = -1;
+	TArray<RC::ScreenMovementDiraction> CurrentSideDirections;
+	FVector2D MovementTouchStartLocation;
+	bool RotationCompleted = false;
 };

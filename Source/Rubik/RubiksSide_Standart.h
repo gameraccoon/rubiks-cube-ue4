@@ -4,7 +4,25 @@
 
 #include "GameFramework/Actor.h"
 #include "RubikPart.h"
+#include "RCRotationAxis.h"
 #include "RubiksSide_Standart.generated.h"
+
+namespace RC
+{
+	struct MovementDirection
+	{
+		MovementDirection(const FVector& _direction, RC::RotationAxis _axis, int _layerIndex)
+			: direction(_direction)
+			, axis(_axis)
+			, layerIndex(_layerIndex)
+		{
+		}
+
+		FVector direction;
+		RC::RotationAxis axis;
+		int layerIndex;
+	};
+}
 
 UCLASS()
 class RUBIK_API ARubiksSide_Standart : public ARubikPart
@@ -20,4 +38,10 @@ public:
 	
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
+
+	void SetDirections(const TArray<RC::MovementDirection>& directions);
+	TArray<RC::MovementDirection> GetDirections() const;
+
+private:
+	TArray<RC::MovementDirection> Directions;
 };

@@ -32,3 +32,13 @@ void ARubiksSide_Standart::Tick( float DeltaTime )
 	Super::Tick( DeltaTime );
 }
 
+
+void ARubiksSide_Standart::SetDirections(const TArray<RC::MovementDirection>& directions)
+{
+	Directions = directions;
+}
+
+TArray<RC::MovementDirection> ARubiksSide_Standart::GetDirections() const
+{
+	return Directions;
+}

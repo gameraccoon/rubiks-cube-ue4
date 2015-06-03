@@ -64,6 +64,9 @@ public:
 
 	inline void ScheduleUpdateParts() { IsNeedUpdateParts = true; }
 
+	// returns false if rotation wasn't added
+	bool AddRotation(const RC::RotationAxis& axis, int layerIndex);
+
 private:
 	GameBase::CommandHistory CommandHistory;
 	GameBase::Command::Ptr CurrentCommand;

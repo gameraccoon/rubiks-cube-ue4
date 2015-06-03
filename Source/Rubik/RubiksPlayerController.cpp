@@ -4,7 +4,10 @@
 #include "RubiksPlayerController.h"
 #include "RubicsCube.h"
 #include "RubiksPlayerPawn.h"
+#include "RubiksSide_Standart.h"
 #include "RubikPart.h"
+
+static const float MOVEMENT_SWIPE_TOLERANCE = 300.0f;
 
 bool ARubiksPlayerController::InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad)
 {
@@ -27,6 +30,13 @@ bool ARubiksPlayerController::InputKey(FKey Key, EInputEvent EventType, float Am
 		}
 	}
 
+	if (Key == FKey("LeftMouseButton") && EventType == EInputEvent::IE_Pressed)
+	{
+		FVector2D mousePos;
+		GetMousePosition(mousePos.X, mousePos.Y);
+		StartRotateCubePart(mousePos);
+	}
+
 	Super::InputKey(Key, EventType, AmountDepressed, bGamepad);
 
 	return true;
@@ -36,11 +46,22 @@ bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, c
 {
 	ThisTouchesMax = 0; // optimization
 
+	if (RotationsLockIndex != -1 && Handle != RotationsLockIndex)
+	{
+		if (Type == ETouchType::Ended)
+		{
+			Multitouch.RemoveTouch(Handle);
+		}
+
+		return true;
+	}
+
 	if (Type == ETouchType::Began)
 	{
 		if (IsCubeUnderPoint(TouchLocation))
 		{
 			RotationsLockIndex = Handle;
+			StartRotateCubePart(TouchLocation);
 			return true;
 		}
 
@@ -49,23 +70,24 @@ bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, c
 	}
 	else if (Type == ETouchType::Moved)
 	{
+		if (RotationsLockIndex == Handle)
+		{
+			TryToRotateCubePart(TouchLocation);
+		}
+
 		Multitouch.MoveTouch(Handle, TouchLocation);
 		if (ThisTouchesMax < Handle) { ThisTouchesMax = Handle; } // optimization
 	}
 	else if (Type == ETouchType::Ended)
 	{
 		Multitouch.RemoveTouch(Handle);
+
 		if (LastTouchesMax == Handle) { LastTouchesMax = ThisTouchesMax; } // optimization
 
 		if (Handle == RotationsLockIndex)
 		{
 			RotationsLockIndex = -1;
 		}
-	}
-
-	if (RotationsLockIndex != -1 && Handle != RotationsLockIndex)
-	{
-		return true;
 	}
 
 	if (LastTouchesMax < ThisTouchesMax) { LastTouchesMax = ThisTouchesMax; } // optimization
@@ -99,8 +121,9 @@ bool ARubiksPlayerController::InputAxis(FKey Key, float Delta, float DeltaTime, 
 	}
 	else if (IsInputKeyDown(FKey("LeftMouseButton")))
 	{
-		//FVector2D mousePos;
-		//GetMousePosition(mousePos.X, mousePos.Y);
+		FVector2D mousePos;
+		GetMousePosition(mousePos.X, mousePos.Y);
+		TryToRotateCubePart(mousePos);
 	}
 
 	Super::InputAxis(Key, Delta, DeltaTime, NumSamples, bGamepad);
@@ -186,6 +209,74 @@ bool ARubiksPlayerController::IsAllComponentsReady() const
 
 bool ARubiksPlayerController::IsCubeUnderPoint(const FVector2D& point) const
 {
+	AActor * actor = GetActorUnderPoint(point);
+
+	if (actor && actor->IsA(ARubikPart::StaticClass()))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void ARubiksPlayerController::StartRotateCubePart(const FVector2D& TouchLocation)
+{
+	AActor * actor = GetActorUnderPoint(TouchLocation);
+
+	if (actor && actor->IsA(ARubiksSide_Standart::StaticClass()))
+	{
+		CheckAllComponents();
+
+		FVector2D actorScreenPos;
+		ProjectWorldLocationToScreen(actor->GetActorLocation(), actorScreenPos);
+
+		if (mainCube)
+		{
+			CurrentSideDirections.Empty();
+			TArray<RC::MovementDirection> directions = dynamic_cast<ARubiksSide_Standart*>(actor)->GetDirections();
+			for (const auto& direction : directions)
+			{
+				FVector2D screenLocation;
+				ProjectWorldLocationToScreen(actor->GetActorLocation() + FQuat(mainCube->GetActorRotation()).RotateVector(direction.direction), screenLocation);
+				CurrentSideDirections.Push(RC::ScreenMovementDiraction(screenLocation - actorScreenPos, direction.axis, direction.layerIndex));
+			}
+			RotationCompleted = false;
+		}
+
+		MovementTouchStartLocation = TouchLocation;
+	}
+}
+
+void ARubiksPlayerController::TryToRotateCubePart(const FVector2D& TouchLocation)
+{
+	if (mainCube && !RotationCompleted)
+	{
+		float longestProjection = 0.0f;
+		RC::ScreenMovementDiraction bestDirection;
+		FVector2D movementDelta = TouchLocation - MovementTouchStartLocation;
+
+		for (const auto& direction : CurrentSideDirections)
+		{
+			float projectionLength = FVector2D::DotProduct(direction.direction, movementDelta);
+			if (projectionLength > longestProjection)
+			{
+				longestProjection = projectionLength;
+				bestDirection = direction;
+			}
+		}
+
+		if (longestProjection > MOVEMENT_SWIPE_TOLERANCE)
+		{
+			mainCube->AddRotation(bestDirection.axis, bestDirection.layerIndex);
+			RotationCompleted = true;
+		}
+	}
+}
+
+AActor* ARubiksPlayerController::GetActorUnderPoint(const FVector2D& point) const
+{
 	FVector location, direction;
 	DeprojectScreenPositionToWorld(point.X, point.Y, location, direction);
 
@@ -198,13 +289,5 @@ bool ARubiksPlayerController::IsCubeUnderPoint(const FVector2D& point) const
 	float endOffset = 300;
 	FVector target = location + (direction * endOffset);
 	GetWorld()->LineTraceSingle(hit, location, target, ECC_GameTraceChannel1, TraceParams);
-
-	if (hit.Actor.IsValid() && hit.GetActor()->IsA(ARubikPart::StaticClass()))
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return hit.GetActor();
 }
