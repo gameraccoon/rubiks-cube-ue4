@@ -51,7 +51,6 @@ public:
 private:
 	void RotateCube(const FRotator& rotation);
 	void SetCameraRotation(const FRotator& rotation);
-	void FindCube();
 	void FindPlayerPawn();
 
 	void CheckAllComponents();

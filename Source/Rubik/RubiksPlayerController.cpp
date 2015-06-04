@@ -117,7 +117,15 @@ bool ARubiksPlayerController::InputAxis(FKey Key, float Delta, float DeltaTime, 
 	{
 		FVector2D mouseDelta;
 		GetInputMouseDelta(mouseDelta.X, mouseDelta.Y);
-		RotateCube(FRotator(-mouseDelta.Y, -mouseDelta.X, 0.0f));
+
+		if (IsInputKeyDown(FKey("LeftShift")))
+		{
+			RotateCube(FRotator(0.0f, 0.0f, mouseDelta.X));
+		}
+		else
+		{
+			RotateCube(FRotator(-mouseDelta.Y, -mouseDelta.X, 0.0f));
+		}
 	}
 	else if (IsInputKeyDown(FKey("LeftMouseButton")))
 	{
@@ -157,21 +165,8 @@ void ARubiksPlayerController::SetCameraRotation(const FRotator& rotation)
 	{
 		playerPawn->CameraYaw = rotation.Yaw;
 		playerPawn->CameraPitch = -rotation.Pitch;
+		playerPawn->CameraRoll = rotation.Roll;
 	}
-}
-
-void ARubiksPlayerController::FindCube()
-{
-	for (TActorIterator<AActor> AllActorsItr(GetWorld()); AllActorsItr; ++AllActorsItr)
-	{
-		if (AllActorsItr->GetName() == "MainCube")
-		{
-			mainCube = dynamic_cast<ARubicsCube*>(*AllActorsItr);
-			break;
-		}
-	}
-
-	TryToAttachCubeToPawn();
 }
 
 void ARubiksPlayerController::FindPlayerPawn()
@@ -183,14 +178,19 @@ void ARubiksPlayerController::FindPlayerPawn()
 
 void ARubiksPlayerController::CheckAllComponents()
 {
-	if (!mainCube)
-	{
-		FindCube();
-	}
-
 	if (!playerPawn)
 	{
 		FindPlayerPawn();
+	}
+
+	if (playerPawn && !mainCube)
+	{
+		if (!playerPawn->Cube)
+		{
+			playerPawn->FindCube();
+		}
+
+		mainCube = playerPawn->Cube;
 	}
 }
 
@@ -283,7 +283,7 @@ AActor* ARubiksPlayerController::GetActorUnderPoint(const FVector2D& point) cons
 	FCollisionQueryParams TraceParams(FName(TEXT("")), true, this);
 	TraceParams.bTraceAsyncScene = true;
 	TraceParams.bReturnPhysicalMaterial = false;
-	TraceParams.bTraceComplex = true;
+	TraceParams.bTraceComplex = false;
 
 	FHitResult hit(ForceInit);
 	float endOffset = 300;

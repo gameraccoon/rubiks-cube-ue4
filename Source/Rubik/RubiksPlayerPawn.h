@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameFramework/Pawn.h"
+#include "RubicsCube.h"
 #include "RubiksPlayerPawn.generated.h"
 
 UCLASS()
@@ -23,13 +24,12 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	
-public:
 	virtual void CalcCamera(float DeltaTime, struct FMinimalViewInfo& OutResult) override;
+	void FindCube();
 	
 public:
 	/** Camera pitch and yaw rotations, updated by mouse axis in player input */
 	float CameraPitch, CameraYaw, CameraRoll;
-	AActor* Cube;
+	ARubicsCube* Cube;
 	float CameraOffset;
-
 };

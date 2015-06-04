@@ -42,7 +42,12 @@ void ARubiksPlayerPawn::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
 {
 	if (!Cube)
 	{
-		return;
+		FindCube();
+
+		if (!Cube)
+		{
+			return;
+		}
 	}
 
 	const FVector CharacterLocation = Cube->GetActorLocation();
@@ -58,3 +63,14 @@ void ARubiksPlayerPawn::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)
 	OutResult.Rotation.Roll = CameraRoll;
 }
 
+void ARubiksPlayerPawn::FindCube()
+{
+	for (TActorIterator<AActor> AllActorsItr(GetWorld()); AllActorsItr; ++AllActorsItr)
+	{
+		if (AllActorsItr->GetName() == "MainCube")
+		{
+			Cube = dynamic_cast<ARubicsCube*>(*AllActorsItr);
+			Cube->ScheduleUpdateParts();
+		}
+	}
+}
