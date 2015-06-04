@@ -76,6 +76,8 @@ private:
 
 	bool IsNeedUpdateParts;
 
+	float RotationSpeed;
+
 private:
 	void InitCube();
 	void InitCubePart(UWorld * const world, const RC::CubeParts::Coord& coord);

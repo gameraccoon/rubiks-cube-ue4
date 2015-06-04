@@ -19,6 +19,7 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	, InitialSize(80.0f)
 	, Type("Standart")
 	, IsNeedUpdateParts(false)
+	, RotationSpeed(10.0f)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -49,7 +50,7 @@ void ARubicsCube::Tick( float DeltaTime )
 
 	if (CurrentCommand.IsValid())
 	{
-		CommandProgress += DeltaTime;
+		CommandProgress += DeltaTime * RotationSpeed;
 		if (CommandProgress < 1.0f)
 		{
 			CurrentCommand->SetProgress(CommandProgress);
