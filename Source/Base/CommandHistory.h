@@ -24,6 +24,8 @@ namespace GameBase
 		void MoveBackward();
 		/// add new command in front of the current state (and remove all commands that were after the current state)
 		void AddCommand(Command::Ref command);
+		/// remove all commands in front of the current
+		void ClearNextCommands();
 
 	private:
 		typedef TDoubleLinkedList<Command::Ref> List;

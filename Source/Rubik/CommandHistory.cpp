@@ -58,6 +58,15 @@ namespace GameBase
 	void CommandHistory::AddCommand(Command::Ref command)
 	{
 		// if we have some commands after the current then remove them
+		ClearNextCommands();
+
+		commands.AddHead(command);
+		cursor.prew = commands.GetHead();
+		cursor.next = nullptr;
+	}
+
+	void CommandHistory::ClearNextCommands()
+	{
 		if (!IsOnHead())
 		{
 			auto headCommand = commands.GetHead();
@@ -66,11 +75,8 @@ namespace GameBase
 				commands.RemoveNode(headCommand);
 				headCommand = commands.GetHead();
 			}
+			cursor.next = nullptr;
 		}
-
-		commands.AddHead(command);
-		cursor.prew = commands.GetHead();
-		cursor.next = nullptr;
 	}
 
 } // namespace GameBase

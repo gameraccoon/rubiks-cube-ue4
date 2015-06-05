@@ -9,7 +9,7 @@ ARubiksPlayerPawn::ARubiksPlayerPawn()
 	: CameraPitch(0)
 	, CameraYaw(0)
 	, CameraRoll(0)
-	, CameraOffset(150.0f)
+	, CameraOffset(130.0f)
 	, Cube(nullptr)
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.

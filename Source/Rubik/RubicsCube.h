@@ -52,6 +52,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Colors")
 		UMaterialInstanceConstant * SideColor6;
 
+	UFUNCTION(BlueprintCallable, Category = "Actions")
+		void UndoRotation();
+
+	UFUNCTION(BlueprintCallable, Category = "Actions")
+		void RedoRotation();
+
 public:
 	// Sets default values for this actor's properties
 	ARubicsCube(const class FObjectInitializer& OI);
@@ -77,6 +83,8 @@ private:
 	bool IsNeedUpdateParts;
 
 	float RotationSpeed;
+
+	bool IsMovingFront;
 
 private:
 	void InitCube();

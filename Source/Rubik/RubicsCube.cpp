@@ -53,12 +53,27 @@ void ARubicsCube::Tick( float DeltaTime )
 		CommandProgress += DeltaTime * RotationSpeed;
 		if (CommandProgress < 1.0f)
 		{
-			CurrentCommand->SetProgress(CommandProgress);
+			CurrentCommand->SetProgress(IsMovingFront ? CommandProgress : 1.0f - CommandProgress);
 		}
 		else
 		{
-			CurrentCommand->Execute();
-			CommandHistory.AddCommand(CurrentCommand.ToSharedRef());
+			if (IsMovingFront)
+			{
+				CurrentCommand->Execute();
+				if (CommandHistory.IsOnHead())
+				{
+					CommandHistory.AddCommand(CurrentCommand.ToSharedRef());
+				}
+				else
+				{
+					CommandHistory.MoveForward();
+				}
+			}
+			else
+			{
+				CurrentCommand->SetProgress(0.0f);
+			}
+
 			CurrentCommand = nullptr;
 			CommandProgress = 0.0f;
 		}
@@ -193,10 +208,32 @@ void ARubicsCube::InitCubePart(UWorld * const world, const RC::CubeParts::Coord&
 
 bool ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
 {
+	IsMovingFront = true;
 	if (!CurrentCommand.IsValid())
 	{
+		CommandHistory.ClearNextCommands();
 		CurrentCommand = RC::RotationCommand::Create(this, axis, layerIndex);
 		return true;
 	}
 	return false;
+}
+
+void ARubicsCube::UndoRotation()
+{
+	IsMovingFront = false;
+	if (!CurrentCommand.IsValid() && !CommandHistory.IsOnTail())
+	{
+		CurrentCommand = CommandHistory.GetPrewCommand();
+		CurrentCommand->Unexecute();
+		CommandHistory.MoveBackward();
+	}
+}
+
+void ARubicsCube::RedoRotation()
+{
+	IsMovingFront = true;
+	if (!CurrentCommand.IsValid() && !CommandHistory.IsOnHead())
+	{
+		CurrentCommand = CommandHistory.GetNextCommand();
+	}
 }
