@@ -261,6 +261,8 @@ void ARubiksPlayerController::TryToRotateCubePart(const FVector2D& TouchLocation
 		for (const auto& direction : CurrentSideDirections)
 		{
 			float angle = FMath::Atan2(direction.direction.X, direction.direction.Y) - FMath::Atan2(movementDelta.X, movementDelta.Y);
+			if (angle > PI) { angle -= 2 * PI; }
+			if (angle < -PI) { angle += 2 * PI; }
 			if (FMath::Abs(angle) < minimalAngle)
 			{
 				minimalAngle = FMath::Abs(angle);
