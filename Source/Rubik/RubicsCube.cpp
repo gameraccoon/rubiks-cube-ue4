@@ -190,6 +190,8 @@ void ARubicsCube::InitCubePart(UWorld * const world, const RC::CubeParts::Coord&
 
 bool ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
 {
+	FinishRotation();
+
 	IsMovingFront = true;
 	if (!CurrentCommand.IsValid())
 	{
@@ -202,6 +204,8 @@ bool ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
 
 void ARubicsCube::UndoRotation()
 {
+	FinishRotation();
+
 	IsMovingFront = false;
 	if (!CurrentCommand.IsValid() && !CommandHistory.IsOnTail())
 	{
@@ -213,6 +217,8 @@ void ARubicsCube::UndoRotation()
 
 void ARubicsCube::RedoRotation()
 {
+	FinishRotation();
+
 	IsMovingFront = true;
 	if (!CurrentCommand.IsValid() && !CommandHistory.IsOnHead())
 	{
@@ -222,6 +228,11 @@ void ARubicsCube::RedoRotation()
 
 void ARubicsCube::FinishRotation()
 {
+	if (!CurrentCommand.IsValid())
+	{
+		return;
+	}
+
 	if (IsMovingFront)
 	{
 		CurrentCommand->Execute();
