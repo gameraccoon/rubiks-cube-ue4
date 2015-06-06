@@ -64,6 +64,9 @@ private:
 
 	AActor* GetActorUnderPoint(const FVector2D& point) const;
 
+	// Tap or Click
+	void ProcessTap(AActor* tappedActor);
+
 private:
 	/// Cube that we control at this time
 	ARubicsCube* mainCube;
@@ -78,4 +81,6 @@ private:
 	TArray<RC::ScreenMovementDiraction> CurrentSideDirections;
 	FVector2D MovementTouchStartLocation;
 	bool RotationCompleted = false;
+
+	AActor* SwipeStartActor = nullptr;
 };

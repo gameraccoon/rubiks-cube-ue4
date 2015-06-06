@@ -35,6 +35,15 @@ bool ARubiksPlayerController::InputKey(FKey Key, EInputEvent EventType, float Am
 		FVector2D mousePos;
 		GetMousePosition(mousePos.X, mousePos.Y);
 		StartRotateCubePart(mousePos);
+		SwipeStartActor = GetActorUnderPoint(mousePos);
+	}
+	else if (Key == FKey("LeftMouseButton") && EventType == EInputEvent::IE_Released)
+	{
+		if (SwipeStartActor != nullptr)
+		{
+			ProcessTap(SwipeStartActor);
+			SwipeStartActor = nullptr;
+		}
 	}
 
 	Super::InputKey(Key, EventType, AmountDepressed, bGamepad);
@@ -62,6 +71,7 @@ bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, c
 		{
 			RotationsLockIndex = Handle;
 			StartRotateCubePart(TouchLocation);
+			SwipeStartActor = GetActorUnderPoint(TouchLocation);
 			return true;
 		}
 
@@ -73,6 +83,15 @@ bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, c
 		if (RotationsLockIndex == Handle)
 		{
 			TryToRotateCubePart(TouchLocation);
+		}
+
+		if (SwipeStartActor != nullptr)
+		{
+			AActor* actorUnderPoint = GetActorUnderPoint(TouchLocation);
+			if (actorUnderPoint != SwipeStartActor)
+			{
+				SwipeStartActor = nullptr;
+			}
 		}
 
 		Multitouch.MoveTouch(Handle, TouchLocation);
@@ -87,6 +106,12 @@ bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, c
 		if (Handle == RotationsLockIndex)
 		{
 			RotationsLockIndex = -1;
+		}
+
+		if (SwipeStartActor != nullptr)
+		{
+			ProcessTap(SwipeStartActor);
+			SwipeStartActor = nullptr;
 		}
 	}
 
@@ -132,6 +157,15 @@ bool ARubiksPlayerController::InputAxis(FKey Key, float Delta, float DeltaTime, 
 		FVector2D mousePos;
 		GetMousePosition(mousePos.X, mousePos.Y);
 		TryToRotateCubePart(mousePos);
+
+		if (SwipeStartActor != nullptr)
+		{
+			AActor* actorUnderPoint = GetActorUnderPoint(mousePos);
+			if (actorUnderPoint != SwipeStartActor)
+			{
+				SwipeStartActor = nullptr;
+			}
+		}
 	}
 
 	Super::InputAxis(Key, Delta, DeltaTime, NumSamples, bGamepad);
@@ -294,4 +328,26 @@ AActor* ARubiksPlayerController::GetActorUnderPoint(const FVector2D& point) cons
 	FVector target = location + (direction * endOffset);
 	GetWorld()->LineTraceSingle(hit, location, target, ECC_GameTraceChannel1, TraceParams);
 	return hit.GetActor();
+}
+
+void ARubiksPlayerController::ProcessTap(AActor* tappedActor)
+{
+	if (tappedActor->GetName() == "Undo")
+	{
+		CheckAllComponents();
+
+		if (mainCube)
+		{
+			mainCube->UndoRotation();
+		}
+	}
+	else if (tappedActor->GetName() == "Redo")
+	{
+		CheckAllComponents();
+
+		if (mainCube)
+		{
+			mainCube->RedoRotation();
+		}
+	}
 }
