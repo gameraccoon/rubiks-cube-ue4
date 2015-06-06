@@ -57,25 +57,7 @@ void ARubicsCube::Tick( float DeltaTime )
 		}
 		else
 		{
-			if (IsMovingFront)
-			{
-				CurrentCommand->Execute();
-				if (CommandHistory.IsOnHead())
-				{
-					CommandHistory.AddCommand(CurrentCommand.ToSharedRef());
-				}
-				else
-				{
-					CommandHistory.MoveForward();
-				}
-			}
-			else
-			{
-				CurrentCommand->SetProgress(0.0f);
-			}
-
-			CurrentCommand = nullptr;
-			CommandProgress = 0.0f;
+			FinishRotation();
 		}
 	}
 }
@@ -236,4 +218,27 @@ void ARubicsCube::RedoRotation()
 	{
 		CurrentCommand = CommandHistory.GetNextCommand();
 	}
+}
+
+void ARubicsCube::FinishRotation()
+{
+	if (IsMovingFront)
+	{
+		CurrentCommand->Execute();
+		if (CommandHistory.IsOnHead())
+		{
+			CommandHistory.AddCommand(CurrentCommand.ToSharedRef());
+		}
+		else
+		{
+			CommandHistory.MoveForward();
+		}
+	}
+	else
+	{
+		CurrentCommand->SetProgress(0.0f);
+	}
+
+	CurrentCommand = nullptr;
+	CommandProgress = 0.0f;
 }

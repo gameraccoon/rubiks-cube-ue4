@@ -95,6 +95,8 @@ private:
 
 	void UpdateParts();
 
+	void FinishRotation();
+
 	friend class RC::CubeCommand;
 	friend class RC::RotationCommand;
 

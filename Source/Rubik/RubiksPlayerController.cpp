@@ -7,7 +7,7 @@
 #include "RubiksSide_Standart.h"
 #include "RubikPart.h"
 
-static const float MOVEMENT_SWIPE_TOLERANCE = 300.0f;
+static const float MOVEMENT_SWIPE_TOLERANCE = 10.0f;
 
 bool ARubiksPlayerController::InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad)
 {
@@ -253,21 +253,23 @@ void ARubiksPlayerController::TryToRotateCubePart(const FVector2D& TouchLocation
 {
 	if (mainCube && !RotationCompleted)
 	{
-		float longestProjection = 0.0f;
+		float minimalAngle = 1000.0f;
 		RC::ScreenMovementDiraction bestDirection;
 		FVector2D movementDelta = TouchLocation - MovementTouchStartLocation;
+		float movementLength = -1.0f;
 
 		for (const auto& direction : CurrentSideDirections)
 		{
-			float projectionLength = FVector2D::DotProduct(direction.direction, movementDelta);
-			if (projectionLength > longestProjection)
+			float angle = FMath::Atan2(direction.direction.X, direction.direction.Y) - FMath::Atan2(movementDelta.X, movementDelta.Y);
+			if (FMath::Abs(angle) < minimalAngle)
 			{
-				longestProjection = projectionLength;
+				minimalAngle = FMath::Abs(angle);
 				bestDirection = direction;
+				movementLength = direction.direction.Size();
 			}
 		}
 
-		if (longestProjection > MOVEMENT_SWIPE_TOLERANCE)
+		if (movementLength > 0.0f && movementDelta.Size() > (movementLength * MOVEMENT_SWIPE_TOLERANCE))
 		{
 			mainCube->AddRotation(bestDirection.axis, bestDirection.layerIndex);
 			RotationCompleted = true;
@@ -286,7 +288,7 @@ AActor* ARubiksPlayerController::GetActorUnderPoint(const FVector2D& point) cons
 	TraceParams.bTraceComplex = false;
 
 	FHitResult hit(ForceInit);
-	float endOffset = 300;
+	float endOffset = 500;
 	FVector target = location + (direction * endOffset);
 	GetWorld()->LineTraceSingle(hit, location, target, ECC_GameTraceChannel1, TraceParams);
 	return hit.GetActor();
