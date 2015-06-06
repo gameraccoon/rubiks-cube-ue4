@@ -34,8 +34,8 @@ bool ARubiksPlayerController::InputKey(FKey Key, EInputEvent EventType, float Am
 	{
 		FVector2D mousePos;
 		GetMousePosition(mousePos.X, mousePos.Y);
-		StartRotateCubePart(mousePos);
 		SwipeStartActor = GetActorUnderPoint(mousePos);
+		StartRotateCubePart(SwipeStartActor, mousePos);
 	}
 	else if (Key == FKey("LeftMouseButton") && EventType == EInputEvent::IE_Released)
 	{
@@ -67,13 +67,15 @@ bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, c
 
 	if (Type == ETouchType::Began)
 	{
-		if (IsCubeUnderPoint(TouchLocation))
+		AActor* actorUnderPoint = GetActorUnderPoint(TouchLocation);
+		if (ActorIsCube(actorUnderPoint))
 		{
 			RotationsLockIndex = Handle;
-			StartRotateCubePart(TouchLocation);
-			SwipeStartActor = GetActorUnderPoint(TouchLocation);
+			StartRotateCubePart(actorUnderPoint, TouchLocation);
 			return true;
 		}
+
+		SwipeStartActor = actorUnderPoint;
 
 		Multitouch.AddTouch(Handle, TouchLocation);
 		if (ThisTouchesMax < Handle) { ThisTouchesMax = Handle; } // optimization
@@ -241,10 +243,8 @@ bool ARubiksPlayerController::IsAllComponentsReady() const
 	return mainCube && playerPawn;
 }
 
-bool ARubiksPlayerController::IsCubeUnderPoint(const FVector2D& point) const
+bool ARubiksPlayerController::ActorIsCube(const AActor* actor) const
 {
-	AActor * actor = GetActorUnderPoint(point);
-
 	if (actor && actor->IsA(ARubikPart::StaticClass()))
 	{
 		return true;
@@ -255,25 +255,23 @@ bool ARubiksPlayerController::IsCubeUnderPoint(const FVector2D& point) const
 	}
 }
 
-void ARubiksPlayerController::StartRotateCubePart(const FVector2D& TouchLocation)
+void ARubiksPlayerController::StartRotateCubePart(AActor* cubePart, const FVector2D& TouchLocation)
 {
-	AActor * actor = GetActorUnderPoint(TouchLocation);
-
-	if (actor && actor->IsA(ARubiksSide_Standart::StaticClass()))
+	if (cubePart && cubePart->IsA(ARubiksSide_Standart::StaticClass()))
 	{
 		CheckAllComponents();
 
 		FVector2D actorScreenPos;
-		ProjectWorldLocationToScreen(actor->GetActorLocation(), actorScreenPos);
+		ProjectWorldLocationToScreen(cubePart->GetActorLocation(), actorScreenPos);
 
 		if (mainCube)
 		{
 			CurrentSideDirections.Empty();
-			TArray<RC::MovementDirection> directions = dynamic_cast<ARubiksSide_Standart*>(actor)->GetDirections();
+			TArray<RC::MovementDirection> directions = dynamic_cast<ARubiksSide_Standart*>(cubePart)->GetDirections();
 			for (const auto& direction : directions)
 			{
 				FVector2D screenLocation;
-				ProjectWorldLocationToScreen(actor->GetActorLocation() + FQuat(mainCube->GetActorRotation()).RotateVector(direction.direction), screenLocation);
+				ProjectWorldLocationToScreen(cubePart->GetActorLocation() + FQuat(mainCube->GetActorRotation()).RotateVector(direction.direction), screenLocation);
 				CurrentSideDirections.Push(RC::ScreenMovementDiraction(screenLocation - actorScreenPos, direction.axis, direction.layerIndex));
 			}
 			RotationCompleted = false;

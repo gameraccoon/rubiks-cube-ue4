@@ -57,9 +57,9 @@ private:
 	void TryToAttachCubeToPawn();
 	bool IsAllComponentsReady() const;
 
-	bool IsCubeUnderPoint(const FVector2D& point) const;
+	bool ActorIsCube(const AActor* actor) const;
 
-	void StartRotateCubePart(const FVector2D& TouchLocation);
+	void StartRotateCubePart(AActor* cubePart, const FVector2D& TouchLocation);
 	void TryToRotateCubePart(const FVector2D& TouchLocation);
 
 	AActor* GetActorUnderPoint(const FVector2D& point) const;
