@@ -4,11 +4,10 @@
 
 namespace GameBase
 {
-	// An abstract action that we can do and undo
+	/// An abstract action that we can do and undo
 	class Command
 	{
 	public:
-		typedef TSharedRef<Command> Ref;
 		typedef TSharedPtr<Command> Ptr;
 
 	public:
@@ -22,5 +21,10 @@ namespace GameBase
 		virtual bool IsContinious() = 0;
 		/// set progress (for continious commands)
 		virtual void SetProgress(float progress) = 0;
+		/// set the actor that will be affected by the command
+		virtual void SetTarget(AActor* target) = 0;
+
+		virtual TSharedPtr<FJsonObject> ToJson() const = 0;
+		virtual void InitFromJson(const TSharedPtr<FJsonObject> serialized) = 0;
 	};
 } // namespace GameBase

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RCCommand.h"
+#include "RCRotationAxis.h"
 
 namespace RC
 {
@@ -9,27 +10,32 @@ namespace RC
 		: public CubeCommand
 	{
 	public:
-		static Ref Create(ARubicsCube * target, RotationAxis axis, int layerIdx);
+		static Ptr Create(RotationAxis axis, int layerIdx);
+		static Ptr Create(TSharedPtr<FJsonObject> serialized);
 
 		virtual ~RotationCommand();
 
 		virtual void Execute() override;
-
 		virtual void Unexecute() override;
 
 		virtual bool IsContinious() override;
-
 		virtual void SetProgress(float progress) override;
 
+		virtual TSharedPtr<FJsonObject> ToJson() const override;
+		virtual void InitFromJson(const TSharedPtr<FJsonObject> serialized) override;
+
+		static void RegisterInFabric();
+
 	private:
-		RotationCommand(ARubicsCube * target, RotationAxis axis, int layerIdx);
+		RotationCommand();
+		RotationCommand(RotationAxis axis, int layerIdx);
 
 	private:
 		/// have command been already executed
 		bool isExecuted;
 		/// axis we rotating around (directed)
-		const RotationAxis axis;
+		RotationAxis axis;
 		/// index of layer that we rotating
-		const int layerIndex;
+		int32 layerIndex;
 	};
 } // namespace RC

@@ -1,25 +1,25 @@
 #pragma once
 
 #include "Base/Command.h"
-#include "RubicsCube.h"
+
+// fwd
+class ARubicsCube;
 
 namespace RC
 {
+
 	/// some abstract action with Rubik's cube
-	class CubeCommand
-		: public GameBase::Command
+	class CubeCommand : public GameBase::Command
 	{
 	public:
-		CubeCommand(ARubicsCube * target)
-			: target(target)
-		{}
+		virtual void SetTarget(AActor* receiver);
 
 	protected:
 		/// get target for modification
-		ARubicsCube * GetTarget() { return target; }
+		ARubicsCube * GetTarget();
 
 	private:
 		/// pointer to object that we will modify
-		ARubicsCube * const target;
+		ARubicsCube * target;
 	};
 } // namespace RC

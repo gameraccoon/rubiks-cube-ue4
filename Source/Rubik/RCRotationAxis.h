@@ -18,6 +18,29 @@ namespace RC
 			: value(_value)
 		{}
 
+		explicit RotationAxis(const FString& serialized)
+			: value(uninitialized)
+		{
+			if (serialized == "FX") {
+				value = FX;
+			}
+			else if (serialized == "FY") {
+				value = FY;
+			}
+			else if (serialized == "FZ") {
+				value = FZ;
+			}
+			else if (serialized == "RX") {
+				value = RX;
+			}
+			else if (serialized == "RY") {
+				value = RY;
+			}
+			else if (serialized == "RZ") {
+				value = RZ;
+			}
+		}
+
 		inline bool IsFrontal() const
 		{
 			return value == FX || value == FY || value == FZ;
@@ -49,6 +72,20 @@ namespace RC
 			case RY: return FY;
 			case RZ: return FZ;
 			default: return uninitialized;
+			}
+		}
+
+		inline FString ToString() const
+		{
+			switch (value)
+			{
+			case FX: return "FX";
+			case FY: return "FY";
+			case FZ: return "FZ";
+			case RX: return "RX";
+			case RY: return "RY";
+			case RZ: return "RZ";
+			default: return "uninitialized";
 			}
 		}
 	};

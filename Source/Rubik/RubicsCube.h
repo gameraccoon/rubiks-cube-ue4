@@ -13,7 +13,8 @@ namespace RC {
 }
 
 UCLASS()
-class RUBIK_API ARubicsCube : public AActor
+class RUBIK_API ARubicsCube
+	: public AActor
 {
 	GENERATED_BODY()
 public:
@@ -72,6 +73,9 @@ public:
 
 	// returns false if rotation wasn't added
 	bool AddRotation(const RC::RotationAxis& axis, int layerIndex);
+
+	TSharedPtr<FJsonObject> GetCommandsAsJson();
+	void LoadCommandsFromJson(TSharedPtr<FJsonObject> serialized);
 
 private:
 	GameBase::CommandHistory CommandHistory;

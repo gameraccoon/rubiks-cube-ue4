@@ -6,6 +6,5 @@
 /Build
 *.opensdf
 /Rubik.sdf
-/*.suo
-/*.sln
+*.sln
 *.suo

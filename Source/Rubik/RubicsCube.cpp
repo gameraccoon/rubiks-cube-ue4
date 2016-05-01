@@ -20,6 +20,7 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	, Type("Standart")
 	, IsNeedUpdateParts(false)
 	, RotationSpeed(10.0f)
+	, CommandHistory(this)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -39,6 +40,8 @@ void ARubicsCube::BeginPlay()
 	InitCube();
 
 	CommandProgress = 0.0f;
+
+	//RubiksGameState* gameState =  Cast<RubiksGameState>(GetWorld()->GameState);
 }
 
 // Called every frame
@@ -196,10 +199,21 @@ bool ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
 	if (!CurrentCommand.IsValid())
 	{
 		CommandHistory.ClearNextCommands();
-		CurrentCommand = RC::RotationCommand::Create(this, axis, layerIndex);
+		CurrentCommand = RC::RotationCommand::Create(axis, layerIndex);
+		CurrentCommand->SetTarget(this);
 		return true;
 	}
 	return false;
+}
+
+TSharedPtr<FJsonObject> ARubicsCube::GetCommandsAsJson()
+{
+	return CommandHistory.ToJson();
+}
+
+void ARubicsCube::LoadCommandsFromJson(TSharedPtr<FJsonObject> serialized)
+{
+	CommandHistory.LoadFromJson(serialized);
 }
 
 void ARubicsCube::UndoRotation()
@@ -209,7 +223,7 @@ void ARubicsCube::UndoRotation()
 	IsMovingFront = false;
 	if (!CurrentCommand.IsValid() && !CommandHistory.IsOnTail())
 	{
-		CurrentCommand = CommandHistory.GetPrewCommand();
+		CurrentCommand = CommandHistory.GetPrevCommand();
 		CurrentCommand->Unexecute();
 		CommandHistory.MoveBackward();
 	}

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "MultiTouchHelper.h"
+#include "Utils/MultiTouchHelper.h"
 #include "GameFramework/PlayerController.h"
 #include "RCRotationAxis.h"
 #include "RubiksPlayerController.generated.h"
