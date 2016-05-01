@@ -7,3 +7,5 @@
 *.opensdf
 /Rubik.sdf
 /*.suo
+/*.sln
+*.suo
