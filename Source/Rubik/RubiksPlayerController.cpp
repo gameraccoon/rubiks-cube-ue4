@@ -324,7 +324,7 @@ AActor* ARubiksPlayerController::GetActorUnderPoint(const FVector2D& point) cons
 	FHitResult hit(ForceInit);
 	float endOffset = 500;
 	FVector target = location + (direction * endOffset);
-	GetWorld()->LineTraceSingle(hit, location, target, ECC_GameTraceChannel1, TraceParams);
+	GetWorld()->LineTraceSingleByChannel(hit, location, target, ECC_GameTraceChannel1, TraceParams);
 	return hit.GetActor();
 }
 

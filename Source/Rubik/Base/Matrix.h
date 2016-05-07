@@ -46,10 +46,10 @@ namespace GameBase
 	class Array3D
 	{
 	public:
-		Array3D(unsigned int length, unsigned int width, unsigned int height, const T& defaultValue)
-			: length(length)
-			, width(width)
-			, height(height)
+		Array3D(unsigned int _length, unsigned int _width, unsigned int _height, const T& defaultValue)
+			: length(_length)
+			, width(_width)
+			, height(_height)
 		{
 			for (unsigned int x = 0; x < length; ++x)
 			{
