@@ -102,8 +102,20 @@ namespace GameBase
 
 		for (const auto& element : serializedCommands)
 		{
-			commands.Push(CommandFactory::Get().CreateFromJson(element->AsObject()));
-			commands.Last()->SetTarget(reciever);
+			Command::Ptr command = CommandFactory::Get().CreateFromJson(element->AsObject());
+			if (command.IsValid())
+			{
+				commands.Push(command);
+				command->SetTarget(reciever);
+				command->Execute();
+			}
+			else
+			{
+				FError::Throwf(TEXT("Problem with deserializing commands"));
+				commands.Empty();
+				current = 0;
+				return;
+			}
 		}
 
 		current = serialized->GetIntegerField("activeCommandIdx");
