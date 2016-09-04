@@ -161,7 +161,7 @@ UMaterialInstanceConstant * ARubicsCube::GetSideMaterial(const FVector& sidePos)
 	}
 	else
 	{
-		FError::Throwf(TEXT("Wrong side location"));
+		UE_LOG(LogicalError, Error, TEXT("Wrong side location"));
 		return SideColor6;
 	}
 }
@@ -173,7 +173,7 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 	for (const FName& sName : socketNames)
 	{
 		AActor * side = world->SpawnActor<ARubiksSide_Standart>(ARubiksSide_Standart::StaticClass());
-		side->AttachRootComponentTo(component, sName);
+		side->AttachToComponent(component, FAttachmentTransformRules(EAttachmentRule(), false), sName);
 		dynamic_cast<ARubiksBlock*>(actor)->Sides.Push(side);
 		FVector relativeCoord = (FQuat(this->GetActorRotation()).Inverse()).RotateVector(component->GetSocketLocation(sName) - this->GetActorLocation());
 
@@ -213,10 +213,10 @@ void ARubicsCube::InitCubePart(UWorld * const world, const RC::CubeParts::Coord&
 	case 4:
 	case 5:
 	case 6:
-		FError::Throwf(TEXT("Unusual cube form"));
+		UE_LOG(LogicalError, Error, TEXT("Unusual cube form"));
 		break;
 	default:
-		FError::Throwf(TEXT("Error with cube form calculationg"));
+		UE_LOG(LogicalError, Error, TEXT("Error with cube form calculationg"));
 		break;
 	}
 

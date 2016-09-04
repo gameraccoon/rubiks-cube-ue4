@@ -5,58 +5,58 @@
 namespace GameBase
 {
 	CommandHistory::CommandHistory()
-		: current(0)
-		, reciever(nullptr)
+		: Current(0)
+		, Reciever(nullptr)
 	{
 	}
 
 	CommandHistory::CommandHistory(AActor* reciever)
-		: current(0)
-		, reciever(reciever)
+		: Current(0)
+		, Reciever(reciever)
 	{
 	}
 
 	bool CommandHistory::IsOnHead() const
 	{
-		return current == commands.Num();
+		return Current == Commands.Num();
 	}
 
 	bool CommandHistory::IsOnTail() const
 	{
-		return current == 0;
+		return Current == 0;
 	}
 
 	bool CommandHistory::IsEmpty() const
 	{
-		return commands.Num() == 0;
+		return Commands.Num() == 0;
 	}
 
 	Command::Ptr CommandHistory::GetNextCommand()
 	{
-		return (IsOnHead() || IsEmpty()) ? GameBase::Command::Ptr(nullptr) : commands[current];
+		return (IsOnHead() || IsEmpty()) ? GameBase::Command::Ptr(nullptr) : Commands[Current];
 	}
 
 	Command::Ptr CommandHistory::GetPrevCommand()
 	{
-		return (IsOnTail() || IsEmpty()) ? GameBase::Command::Ptr(nullptr) : commands[current-1];
+		return (IsOnTail() || IsEmpty()) ? GameBase::Command::Ptr(nullptr) : Commands[Current-1];
 	}
 
 	void CommandHistory::MoveForward()
 	{
 		if (!IsOnHead()) {
-			++current;
+			++Current;
 		} else {
-			FError::Throwf(TEXT("Move forvard from the head of the history"));
+			UE_LOG(LogicalError, Error, TEXT("Move forvard from the head of the history"));
 		}
 	}
 
 	void CommandHistory::MoveBackward()
 	{
 		if (!IsOnTail()) {
-			--current;
+			--Current;
 		}
 		else {
-			FError::Throwf(TEXT("Move backward from the tail of the history"));
+			UE_LOG(LogicalError, Error, TEXT("Move backward from the tail of the history"));
 		}
 	}
 
@@ -65,13 +65,13 @@ namespace GameBase
 		// if we have some commands after the current then remove them
 		ClearNextCommands();
 
-		commands.Push(command);
-		++current;
+		Commands.Push(command);
+		++Current;
 	}
 
 	void CommandHistory::ClearNextCommands()
 	{
-		commands.SetNum(current);
+		Commands.SetNum(Current);
 	}
 
 	TSharedPtr<FJsonObject> CommandHistory::ToJson() const
@@ -80,14 +80,14 @@ namespace GameBase
 
 		TArray<TSharedPtr<FJsonValue>> serializedCommands;
 
-		for (const auto& element : commands)
+		for (const auto& element : Commands)
 		{
 			TSharedPtr<FJsonObject> jsonObject = element->ToJson();
 			serializedCommands.Add(MakeShareable(new FJsonValueObject(jsonObject)));
 		}
 
 		result->SetArrayField("commands", serializedCommands);
-		result->SetNumberField("activeCommandIdx", current);
+		result->SetNumberField("activeCommandIdx", Current);
 
 		return result;
 	}
@@ -98,27 +98,27 @@ namespace GameBase
 
 		TArray<TSharedPtr<FJsonValue>> serializedCommands = serialized->GetArrayField("commands");
 
-		commands.Reserve(serializedCommands.Num());
+		Commands.Reserve(serializedCommands.Num());
 
 		for (const auto& element : serializedCommands)
 		{
 			Command::Ptr command = CommandFactory::Get().CreateFromJson(element->AsObject());
 			if (command.IsValid())
 			{
-				commands.Push(command);
-				command->SetTarget(reciever);
+				Commands.Push(command);
+				command->SetTarget(Reciever);
 				command->Execute();
 			}
 			else
 			{
-				FError::Throwf(TEXT("Problem with deserializing commands"));
-				commands.Empty();
-				current = 0;
+				UE_LOG(LogicalError, Error, TEXT("Problem with deserializing commands"));
+				Commands.Empty();
+				Current = 0;
 				return;
 			}
 		}
 
-		current = serialized->GetIntegerField("activeCommandIdx");
+		Current = serialized->GetIntegerField("activeCommandIdx");
 	}
 
 } // namespace GameBase

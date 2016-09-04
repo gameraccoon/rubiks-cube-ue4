@@ -3,3 +3,5 @@
 #include "Rubik.h"
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, Rubik, "Rubik" );
+
+DEFINE_LOG_CATEGORY(LogicalError);

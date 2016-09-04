@@ -4,8 +4,5 @@
 #include "RubiksSaveGame.h"
 
 
-URubiksSaveGame::URubiksSaveGame()
-{
 
-}
 

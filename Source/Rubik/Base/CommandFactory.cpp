@@ -21,7 +21,6 @@ namespace GameBase
 
 		if (!callback)
 		{
-			FError::Throwf(TEXT("Unimplemented command"));
 			return Command::Ptr(nullptr);
 		}
 

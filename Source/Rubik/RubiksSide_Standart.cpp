@@ -16,7 +16,7 @@ ARubiksSide_Standart::ARubiksSide_Standart(const class FObjectInitializer& OI)
 
 	UStaticMeshComponent* smComponent = OI.CreateDefaultSubobject < UStaticMeshComponent >(this, MakeUniqueObjectName(this, AActor::StaticClass(), "Side"));
 	smComponent->SetStaticMesh(meshObjFinder.Object);
-	smComponent->AttachParent = RootComponent;
+	smComponent->SetupAttachment(RootComponent);
 	smComponent->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
 }
 

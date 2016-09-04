@@ -12,11 +12,9 @@ UCLASS()
 class RUBIK_API URubiksSaveGame : public USaveGame
 {
 	GENERATED_BODY()
-
-public:
-	URubiksSaveGame();
 	
-	UPROPERTY(VisibleAnywhere, Category = Basic)
+	
+public:
 	FString CurrentCubeCommandsJson;
 	
 };

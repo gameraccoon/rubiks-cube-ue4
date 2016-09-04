@@ -4,3 +4,5 @@
 
 #include "Engine.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogicalError, Log, All);
+

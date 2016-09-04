@@ -32,8 +32,8 @@ namespace GameBase
 		void LoadFromJson(const TSharedPtr<FJsonObject> serialized);
 
 	private:
-		AActor* reciever;
-		TArray<Command::Ptr> commands;
-		int current;
+		AActor* Reciever;
+		TArray<Command::Ptr> Commands;
+		int Current;
 	};
 } // namespace GameBase

@@ -14,28 +14,24 @@ ARubiksPlayerPawn::ARubiksPlayerPawn()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 // Called when the game starts or when spawned
 void ARubiksPlayerPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
 void ARubiksPlayerPawn::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
-
 }
 
 // Called to bind functionality to input
-void ARubiksPlayerPawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
+void ARubiksPlayerPawn::SetupPlayerInputComponent(class UInputComponent* IC)
 {
-	Super::SetupPlayerInputComponent(InputComponent);
-
+	Super::SetupPlayerInputComponent(IC);
 }
 
 void ARubiksPlayerPawn::CalcCamera(float DeltaTime, FMinimalViewInfo& OutResult)

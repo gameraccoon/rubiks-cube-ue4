@@ -11,7 +11,7 @@ namespace RC
 
 		if (!target)
 		{
-			FError::Throwf(TEXT("Wrong receiver for a command"));
+			UE_LOG(LogicalError, Error, TEXT("Wrong receiver for a command"));
 		}
 	}
 	

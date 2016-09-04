@@ -10,15 +10,15 @@ namespace RC
 
 	RotationCommand::RotationCommand(RotationAxis axis, int layerIdx)
 		: CubeCommand()
-		, isExecuted(false)
-		, axis(axis)
-		, layerIndex(layerIdx)
+		, IsExecuted(false)
+		, Axis(axis)
+		, LayerIndex(layerIdx)
 	{}
 
 	RotationCommand::RotationCommand()
 		: CubeCommand()
-		, isExecuted(false)
-		, layerIndex(0)
+		, IsExecuted(false)
+		, LayerIndex(0)
 	{}
 
 	RotationCommand::~RotationCommand()
@@ -39,32 +39,32 @@ namespace RC
 
 	void RotationCommand::Execute()
 	{
-		if (isExecuted)
+		if (IsExecuted)
 		{
-			FError::Throwf(TEXT("Try to execute already executed command"));
+			UE_LOG(LogicalError, Error, TEXT("Try to execute already executed command"));
 			return;
 		}
 
-		isExecuted = true;
+		IsExecuted = true;
 		SetProgress(1.0f);
 
 		ARubicsCube* cube = GetTarget();
-		cube->Parts->RenewPartsLocations(axis, layerIndex);
+		cube->Parts->RenewPartsLocations(Axis, LayerIndex);
 	}
 
 	void RotationCommand::Unexecute()
 	{
-		if (!isExecuted)
+		if (!IsExecuted)
 		{
-			FError::Throwf(TEXT("Try to unexecute not executed command"));
+			UE_LOG(LogicalError, Error, TEXT("Try to unexecute not executed command"));
 			return;
 		}
 
-		isExecuted = false;
+		IsExecuted = false;
 		SetProgress(0.0f);
 
 		ARubicsCube* cube = GetTarget();
-		cube->Parts->RenewPartsLocations(-axis, cube->GridSize - 1 - layerIndex);
+		cube->Parts->RenewPartsLocations(-Axis, cube->GridSize - 1 - LayerIndex);
 	}
 
 	bool RotationCommand::IsContinious()
@@ -76,28 +76,28 @@ namespace RC
 	{
 		if (progress < -0.001f || progress > 1.001f)
 		{
-			FError::Throwf(TEXT("Incorrect progress value"));
+			UE_LOG(LogicalError, Error, TEXT("Incorrect progress value"));
 			return;
 		}
 
 		ARubicsCube* cube = GetTarget();
-		cube->Parts->RotateSlice(axis, layerIndex, progress * 90.0f);
+		cube->Parts->RotateSlice(Axis, LayerIndex, progress * 90.0f);
 	}
 
 	TSharedPtr<FJsonObject> RotationCommand::ToJson() const
 	{
 		TSharedPtr<FJsonObject> result = MakeShareable(new FJsonObject());
-		result->SetStringField("axis", axis.ToString());
-		result->SetNumberField("layerIndex", layerIndex);
+		result->SetStringField("axis", Axis.ToString());
+		result->SetNumberField("layerIndex", LayerIndex);
 		result->SetStringField("commandId", ROTATION_COMMAND_ID);
 		return result;
 	}
 
 	void RotationCommand::InitFromJson(const TSharedPtr<FJsonObject> serialized)
 	{
-		axis = RC::RotationAxis(serialized->GetStringField("axis"));
-		layerIndex = (int32)serialized->GetNumberField("layerIndex");
-		isExecuted = false;
+		Axis = RC::RotationAxis(serialized->GetStringField("axis"));
+		LayerIndex = (int32)serialized->GetNumberField("layerIndex");
+		IsExecuted = false;
 	}
 
 	void RotationCommand::RegisterInFabric()

@@ -20,12 +20,12 @@ namespace RC
 
 		if (partInfo.ptr)
 		{
-			FError::Throwf(TEXT("Reassignation of cube part"));
+			UE_LOG(LogicalError, Error, TEXT("Reassignation of cube part"));
 		}
 
 		if (!part)
 		{
-			FError::Throwf(TEXT("Part is NULL"));
+			UE_LOG(LogicalError, Error, TEXT("Part is NULL"));
 		}
 
 		FVector location(FVector(pos.x, pos.y, pos.z) * initialBlockSize);
@@ -161,7 +161,7 @@ namespace RC
 
 		if ((isXMove && isYMove) || (isYMove && isZMove) || (isXMove && isZMove))
 		{
-			FError::Throwf(TEXT("Calculation error"));
+			UE_LOG(LogicalError, Error, TEXT("Calculation error"));
 			return slice;
 		}
 
@@ -203,7 +203,7 @@ namespace RC
 		}
 		else
 		{
-			FError::Throwf(TEXT("Calculation error"));
+			UE_LOG(LogicalError, Error, TEXT("Calculation error"));
 		}
 
 		return slice;
@@ -302,7 +302,7 @@ namespace RC
 		}
 		else
 		{
-			FError::Throwf(TEXT("Unusual side location"));
+			UE_LOG(LogicalError, Error, TEXT("Unusual side location"));
 		}
 
 		ARubiksSide_Standart* castedSide = dynamic_cast<ARubiksSide_Standart*>(side);
@@ -438,7 +438,7 @@ namespace RC
 			return FRotator(0.0f, 0.0f, 0.0f);
 		}
 
-		FError::Throwf(TEXT("Wrong actor position to rotate"));
+		UE_LOG(LogicalError, Error, TEXT("Wrong actor position to rotate"));
 		return FRotator::ZeroRotator;
 	}
 

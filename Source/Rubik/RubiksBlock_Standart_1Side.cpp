@@ -11,6 +11,6 @@ ARubiksBlock_Standart_1Side::ARubiksBlock_Standart_1Side(const class FObjectInit
 
 	UStaticMeshComponent* smComponent = OI.CreateDefaultSubobject < UStaticMeshComponent >(this, MakeUniqueObjectName(this, AActor::StaticClass(), "Block"));
 	smComponent->SetStaticMesh(meshObjFinder.Object);
-	smComponent->AttachParent = RootComponent;
+	smComponent->SetupAttachment(RootComponent);
 	smComponent->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 0.0f), FRotator(0.0f, 0.0f, 0.0f));
 }

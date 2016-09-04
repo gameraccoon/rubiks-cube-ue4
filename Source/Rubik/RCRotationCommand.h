@@ -32,10 +32,10 @@ namespace RC
 
 	private:
 		/// have command been already executed
-		bool isExecuted;
+		bool IsExecuted;
 		/// axis we rotating around (directed)
-		RotationAxis axis;
+		RotationAxis Axis;
 		/// index of layer that we rotating
-		int32 layerIndex;
+		int32 LayerIndex;
 	};
 } // namespace RC
