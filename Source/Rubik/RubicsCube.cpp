@@ -9,7 +9,6 @@
 #include "RubiksBlock_Standart_3Side.h"
 #include "RubiksBlock_Standart_3Side.h"
 #include "RubiksSide_Standart.h"
-#include "RubiksSaveGame.h"
 
 
 // Sets default values
@@ -28,35 +27,6 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	RootComponent = OI.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneComponent"));
 }
 
-static void LoadCube(ARubicsCube* cube)
-{
-	TSharedPtr<FJsonObject> commandsJson;
-
-	if (URubiksSaveGame* loadGameInstance = Cast<URubiksSaveGame>(UGameplayStatics::LoadGameFromSlot("RCube", 0)))
-	{
-
-		FString cubeCommandsJson = loadGameInstance->CurrentCubeCommandsJson;
-		TSharedRef< TJsonReader<> > reader = TJsonReaderFactory<>::Create(cubeCommandsJson);
-
-		if (FJsonSerializer::Deserialize(reader, commandsJson))
-		{
-			cube->LoadCommandsFromJson(commandsJson);
-		}
-	}
-}
-
-static void SaveCube(ARubicsCube* cube)
-{
-	TSharedPtr<FJsonObject> commandsJson = cube->GetCommandsAsJson();
-
-	URubiksSaveGame* saveGameInstance = Cast<URubiksSaveGame>(UGameplayStatics::CreateSaveGameObject(URubiksSaveGame::StaticClass()));
-	FString cubeCommandsJson;
-	TSharedRef< TJsonWriter<> > Writer = TJsonWriterFactory<>::Create(&cubeCommandsJson);
-	FJsonSerializer::Serialize(commandsJson.ToSharedRef(), Writer);
-	saveGameInstance->CurrentCubeCommandsJson = cubeCommandsJson;
-	UGameplayStatics::SaveGameToSlot(saveGameInstance, "RCube", 0);
-}
-
 // Called when the game starts or when spawned
 void ARubicsCube::BeginPlay()
 {
@@ -71,13 +41,7 @@ void ARubicsCube::BeginPlay()
 
 	CommandProgress = 0.0f;
 
-	LoadCube(this);
-}
-
-void ARubicsCube::BeginDestroy()
-{
-	SaveCube(this);
-	Super::BeginDestroy();
+	//RubiksGameState* gameState =  Cast<RubiksGameState>(GetWorld()->GameState);
 }
 
 // Called every frame
@@ -250,7 +214,6 @@ TSharedPtr<FJsonObject> ARubicsCube::GetCommandsAsJson()
 void ARubicsCube::LoadCommandsFromJson(TSharedPtr<FJsonObject> serialized)
 {
 	CommandHistory.LoadFromJson(serialized);
-	UpdateParts();
 }
 
 void ARubicsCube::UndoRotation()

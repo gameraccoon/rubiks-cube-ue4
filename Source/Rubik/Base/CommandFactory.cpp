@@ -19,7 +19,7 @@ namespace GameBase
 	{
 		auto callback = callbacks.Find(serialized->GetStringField("commandId"));
 
-		if (!callback)
+		if (callback)
 		{
 			return Command::Ptr(nullptr);
 		}
