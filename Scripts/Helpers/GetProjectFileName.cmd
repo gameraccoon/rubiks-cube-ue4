@@ -1,0 +1,1 @@
+dir /b ..\*.uproject | findstr .uproject$
