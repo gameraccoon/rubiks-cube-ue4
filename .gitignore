@@ -8,3 +8,5 @@
 /Rubik.sdf
 *.sln
 *.suo
+*.db
+*.opendb

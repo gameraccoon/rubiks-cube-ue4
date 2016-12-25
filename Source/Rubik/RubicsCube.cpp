@@ -4,10 +4,7 @@
 #include "RubicsCube.h"
 #include "RCRotationCommand.h"
 
-#include "RubiksBlock_Standart_1Side.h"
-#include "RubiksBlock_Standart_2Side.h"
-#include "RubiksBlock_Standart_3Side.h"
-#include "RubiksBlock_Standart_3Side.h"
+#include "RubiksBlock_Standart.h"
 #include "RubiksSide_Standart.h"
 
 
@@ -96,93 +93,76 @@ void ARubicsCube::InitCube()
 	}
 }
 
-UMaterialInstanceConstant * ARubicsCube::GetSideMaterial(const FVector& sidePos)
+UMaterialInstanceConstant * ARubicsCube::GetSideMaterial(int sideNum)
 {
-	float sideOffset = InitialBlockSize * ((GridSize - 1) * 0.6);
-	if (sidePos.X > sideOffset)
-	{
+	switch (sideNum) {
+	case 0:
 		return SideColor1;
-	}
-	else if (sidePos.X < -sideOffset)
-	{
+	case 1:
 		return SideColor2;
-	}
-	else if (sidePos.Y > sideOffset)
-	{
+	case 2:
 		return SideColor3;
-	}
-	else if (sidePos.Y < -sideOffset)
-	{
+	case 3:
 		return SideColor4;
-	}
-	else if (sidePos.Z > sideOffset)
-	{
+	case 4:
 		return SideColor5;
-	}
-	else if (sidePos.Z < -sideOffset)
-	{
+	case 5:
 		return SideColor6;
-	}
-	else
-	{
-		UE_LOG(LogicalError, Error, TEXT("Wrong side location"));
-		return SideColor6;
+	default:
+		UE_LOG(LogicalError, Error, TEXT("Wrong side number"));
+		return SideColor1;
 	}
 }
 
 void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, const RC::CubeParts::Coord& coord)
 {
-	UStaticMeshComponent* component = dynamic_cast<UStaticMeshComponent*>(actor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
+	UStaticMeshComponent* component = Cast<UStaticMeshComponent>(actor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 	TArray<FName> socketNames = component->GetAllSocketNames();
 	for (const FName& sName : socketNames)
 	{
-		AActor * side = world->SpawnActor<ARubiksSide_Standart>(ARubiksSide_Standart::StaticClass());
-		side->AttachToComponent(component, FAttachmentTransformRules(EAttachmentRule(), false), sName);
-		dynamic_cast<ARubiksBlock*>(actor)->Sides.Push(side);
-		FVector relativeCoord = (FQuat(this->GetActorRotation()).Inverse()).RotateVector(component->GetSocketLocation(sName) - this->GetActorLocation());
+		int SideNum = -1;
 
-		UMaterialInstanceConstant * material = GetSideMaterial(relativeCoord);
-		dynamic_cast<UStaticMeshComponent*>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);
+		if (sName == "Side1" && coord.z == GridSize - 1)
+		{
+			SideNum = 0;
+		}
+		else if (sName == "Side2" && coord.x == GridSize - 1)
+		{
+			SideNum = 1;
+		}
+		else if (sName == "Side3" && coord.y == 0)
+		{
+			SideNum = 2;
+		}
+		else if (sName == "Side4" && coord.z == 0)
+		{
+			SideNum = 3;
+		}
+		else if (sName == "Side5" && coord.x == 0)
+		{
+			SideNum = 4;
+		}
+		else if (sName == "Side6" && coord.y == GridSize - 1)
+		{
+			SideNum = 5;
+		}
+
+		if (SideNum >= 0)
+		{
+			AActor * side = world->SpawnActor<ARubiksSide_Standart>(ARubiksSide_Standart::StaticClass());
+			side->AttachToComponent(component, FAttachmentTransformRules(EAttachmentRule(), false), sName);
+			Cast<ARubiksBlock>(actor)->Sides.Push(side);
+			FVector relativeCoord = (FQuat(this->GetActorRotation()).Inverse()).RotateVector(component->GetSocketLocation(sName) - this->GetActorLocation());
+
+			UMaterialInstanceConstant * material = GetSideMaterial(SideNum);
+			Cast<UStaticMeshComponent>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);
+		}
 	}
 }
 
 void ARubicsCube::InitCubePart(UWorld * const world, const RC::CubeParts::Coord& coord)
 {
-	AActor * actor = nullptr;
-
-	int blocksCount = 0;
-
-	if (coord.x == 0) ++blocksCount;
-	if (coord.x == GridSize - 1) ++blocksCount;
-	if (coord.y == 0) ++blocksCount;
-	if (coord.y == GridSize - 1) ++blocksCount;
-	if (coord.z == 0) ++blocksCount;
-	if (coord.z == GridSize - 1) ++blocksCount;
-
-	float halfSize = InitialBlockSize * GridSize;
-
-	switch (blocksCount)
-	{
-	case 0:
-		break;
-	case 1:
-		actor = world->SpawnActor<ARubiksBlock_Standart_1Side>(ARubiksBlock_Standart_1Side::StaticClass());
-		break;
-	case 2:
-		actor = world->SpawnActor<ARubiksBlock_Standart_2Side>(ARubiksBlock_Standart_2Side::StaticClass());
-		break;
-	case 3:
-		actor = world->SpawnActor<ARubiksBlock_Standart_3Side>(ARubiksBlock_Standart_3Side::StaticClass());
-		break;
-	case 4:
-	case 5:
-	case 6:
-		UE_LOG(LogicalError, Error, TEXT("Unusual cube form"));
-		break;
-	default:
-		UE_LOG(LogicalError, Error, TEXT("Error with cube form calculationg"));
-		break;
-	}
+	AActor * actor = world->SpawnActor<ARubiksBlock_Standart>(ARubiksBlock_Standart::StaticClass());
 
 	if (actor != nullptr)
 	{

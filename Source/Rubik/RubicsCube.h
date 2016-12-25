@@ -94,7 +94,7 @@ private:
 	void InitCube();
 	void InitCubePart(UWorld * const world, const RC::CubeParts::Coord& coord);
 
-	UMaterialInstanceConstant * GetSideMaterial(const FVector& sidePos);
+	UMaterialInstanceConstant * GetSideMaterial(int sideNum);
 	void AttachSidesToSockets(UWorld * const world, AActor * actor, const RC::CubeParts::Coord& coord);
 
 	void UpdateParts();
