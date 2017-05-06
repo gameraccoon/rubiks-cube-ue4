@@ -10,3 +10,4 @@
 *.suo
 *.db
 *.opendb
+/.vs
