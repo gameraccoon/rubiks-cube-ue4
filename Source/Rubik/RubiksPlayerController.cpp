@@ -17,7 +17,7 @@ bool ARubiksPlayerController::InputKey(FKey Key, EInputEvent EventType, float Am
 
 		if (IsAllComponentsReady())
 		{
-			playerPawn->CameraOffset /= 1.1;
+			PlayerPawn->CameraOffset /= 1.1;
 		}
 	}
 	else if (Key == FKey("MouseScrollDown"))
@@ -26,7 +26,7 @@ bool ARubiksPlayerController::InputKey(FKey Key, EInputEvent EventType, float Am
 
 		if (IsAllComponentsReady())
 		{
-			playerPawn->CameraOffset *= 1.1;
+			PlayerPawn->CameraOffset *= 1.1;
 		}
 	}
 
@@ -186,10 +186,10 @@ void ARubiksPlayerController::RotateCube(const FRotator& rotation)
 
 	if (IsAllComponentsReady())
 	{
-		FQuat fullRotation = FQuat(rotation) * FQuat(mainCube->GetActorRotation());
-		FQuat partialRotation = FQuat::FastLerp(mainCube->GetActorRotation().Quaternion(), fullRotation, 0.3);
-		mainCube->SetActorRotation(partialRotation.Rotator());
-		mainCube->ScheduleUpdateParts();
+		FQuat fullRotation = FQuat(rotation) * FQuat(MainCube->GetActorRotation());
+		FQuat partialRotation = FQuat::FastLerp(MainCube->GetActorRotation().Quaternion(), fullRotation, 0.3);
+		MainCube->SetActorRotation(partialRotation.Rotator());
+		MainCube->ScheduleUpdateParts();
 	}
 }
 
@@ -199,53 +199,53 @@ void ARubiksPlayerController::SetCameraRotation(const FRotator& rotation)
 
 	if (IsAllComponentsReady())
 	{
-		playerPawn->CameraYaw = rotation.Yaw;
-		playerPawn->CameraPitch = -rotation.Pitch;
-		playerPawn->CameraRoll = rotation.Roll;
+		PlayerPawn->CameraYaw = rotation.Yaw;
+		PlayerPawn->CameraPitch = -rotation.Pitch;
+		PlayerPawn->CameraRoll = rotation.Roll;
 	}
 }
 
 void ARubiksPlayerController::FindPlayerPawn()
 {
-	playerPawn = dynamic_cast<ARubiksPlayerPawn*>(GetPawn());
+	PlayerPawn = dynamic_cast<ARubiksPlayerPawn*>(GetPawn());
 
 	TryToAttachCubeToPawn();
 }
 
 void ARubiksPlayerController::CheckAllComponents()
 {
-	if (!playerPawn)
+	if (!PlayerPawn || !PlayerPawn->IsValidLowLevel())
 	{
 		FindPlayerPawn();
 	}
 
-	if (playerPawn && !mainCube)
+	if (PlayerPawn && PlayerPawn->IsValidLowLevel() && !MainCube)
 	{
-		if (!playerPawn->Cube)
+		if (!PlayerPawn->Cube)
 		{
-			playerPawn->FindCube();
+			PlayerPawn->FindCube();
 		}
 
-		mainCube = playerPawn->Cube;
+		MainCube = PlayerPawn->Cube;
 	}
 }
 
 void ARubiksPlayerController::TryToAttachCubeToPawn()
 {
-	if (mainCube && playerPawn)
+	if (MainCube && MainCube->IsValidLowLevel() && PlayerPawn && PlayerPawn->IsValidLowLevel())
 	{
-		playerPawn->Cube = mainCube;
+		PlayerPawn->Cube = MainCube;
 	}
 }
 
 bool ARubiksPlayerController::IsAllComponentsReady() const
 {
-	return mainCube && playerPawn;
+	return MainCube && MainCube->IsValidLowLevel() && PlayerPawn && PlayerPawn->IsValidLowLevel();
 }
 
-bool ARubiksPlayerController::ActorIsCube(const AActor* actor) const
+bool ARubiksPlayerController::ActorIsCube(const AActor* Actor) const
 {
-	if (actor && actor->IsA(ARubikPart::StaticClass()))
+	if (Actor && Actor->IsValidLowLevel() && Actor->IsA(ARubikPart::StaticClass()))
 	{
 		return true;
 	}
@@ -255,24 +255,24 @@ bool ARubiksPlayerController::ActorIsCube(const AActor* actor) const
 	}
 }
 
-void ARubiksPlayerController::StartRotateCubePart(AActor* cubePart, const FVector2D& TouchLocation)
+void ARubiksPlayerController::StartRotateCubePart(AActor* CubePart, const FVector2D& TouchLocation)
 {
-	if (cubePart && cubePart->IsA(ARubiksSide_Standart::StaticClass()))
+	if (CubePart && CubePart->IsValidLowLevel() && CubePart->IsA(ARubiksSide_Standart::StaticClass()))
 	{
 		CheckAllComponents();
 
-		FVector2D actorScreenPos;
-		ProjectWorldLocationToScreen(cubePart->GetActorLocation(), actorScreenPos);
+		FVector2D ActorScreenPos;
+		ProjectWorldLocationToScreen(CubePart->GetActorLocation(), ActorScreenPos);
 
-		if (mainCube)
+		if (MainCube)
 		{
 			CurrentSideDirections.Empty();
-			TArray<RC::MovementDirection> directions = dynamic_cast<ARubiksSide_Standart*>(cubePart)->GetDirections();
-			for (const auto& direction : directions)
+			TArray<RC::MovementDirection> Directions = dynamic_cast<ARubiksSide_Standart*>(CubePart)->GetDirections();
+			for (const auto& Direction : Directions)
 			{
-				FVector2D screenLocation;
-				ProjectWorldLocationToScreen(cubePart->GetActorLocation() + FQuat(mainCube->GetActorRotation()).RotateVector(direction.direction), screenLocation);
-				CurrentSideDirections.Push(RC::ScreenMovementDiraction(screenLocation - actorScreenPos, direction.axis, direction.layerIndex));
+				FVector2D ScreenLocation;
+				ProjectWorldLocationToScreen(CubePart->GetActorLocation() + FQuat(MainCube->GetActorRotation()).RotateVector(Direction.direction), ScreenLocation);
+				CurrentSideDirections.Push(RC::ScreenMovementDiraction(ScreenLocation - ActorScreenPos, Direction.axis, Direction.layerIndex));
 			}
 			RotationCompleted = false;
 		}
@@ -283,7 +283,7 @@ void ARubiksPlayerController::StartRotateCubePart(AActor* cubePart, const FVecto
 
 void ARubiksPlayerController::TryToRotateCubePart(const FVector2D& TouchLocation)
 {
-	if (mainCube && !RotationCompleted)
+	if (MainCube && !RotationCompleted)
 	{
 		float minimalAngle = 1000.0f;
 		RC::ScreenMovementDiraction bestDirection;
@@ -305,7 +305,7 @@ void ARubiksPlayerController::TryToRotateCubePart(const FVector2D& TouchLocation
 
 		if (movementLength > 0.0f && movementDelta.Size() > (movementLength * MOVEMENT_SWIPE_TOLERANCE))
 		{
-			mainCube->AddRotation(bestDirection.axis, bestDirection.layerIndex);
+			MainCube->AddRotation(bestDirection.axis, bestDirection.layerIndex);
 			RotationCompleted = true;
 		}
 	}
@@ -328,24 +328,22 @@ AActor* ARubiksPlayerController::GetActorUnderPoint(const FVector2D& point) cons
 	return hit.GetActor();
 }
 
-void ARubiksPlayerController::ProcessTap(AActor* tappedActor)
+void ARubiksPlayerController::UndoMove()
 {
-	if (tappedActor->GetName() == "Undo")
-	{
-		CheckAllComponents();
+	CheckAllComponents();
 
-		if (mainCube)
-		{
-			mainCube->UndoRotation();
-		}
+	if (MainCube)
+	{
+		MainCube->UndoRotation();
 	}
-	else if (tappedActor->GetName() == "Redo")
-	{
-		CheckAllComponents();
+}
 
-		if (mainCube)
-		{
-			mainCube->RedoRotation();
-		}
+void ARubiksPlayerController::RedoMove()
+{
+	CheckAllComponents();
+
+	if (MainCube)
+	{
+		MainCube->RedoRotation();
 	}
 }

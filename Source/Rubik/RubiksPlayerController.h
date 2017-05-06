@@ -48,6 +48,16 @@ public:
 	virtual bool InputAxis(FKey Key, float Delta, float DeltaTime, int32 NumSamples, bool bGamepad) override;
 	virtual bool InputMotion(const FVector& Tilt, const FVector& RotationRate, const FVector& Gravity, const FVector& Acceleration) override;
 
+	// Tap or Click
+	UFUNCTION(BlueprintImplementableEvent)
+	virtual void ProcessTap(AActor* tappedActor) = 0;
+
+	UFUNCTION(BlueprintCallable)
+	void UndoMove();
+
+	UFUNCTION(BlueprintCallable)
+	void RedoMove();
+
 private:
 	void RotateCube(const FRotator& rotation);
 	void SetCameraRotation(const FRotator& rotation);
@@ -64,13 +74,13 @@ private:
 
 	AActor* GetActorUnderPoint(const FVector2D& point) const;
 
-	// Tap or Click
-	void ProcessTap(AActor* tappedActor);
-
 private:
 	/// Cube that we control at this time
-	ARubicsCube* mainCube;
-	ARubiksPlayerPawn* playerPawn;
+	UPROPERTY()
+	ARubicsCube* MainCube;
+
+	UPROPERTY()
+	ARubiksPlayerPawn* PlayerPawn;
 	Utils::MultitouchHelper Multitouch;
 
 	// for optimization
@@ -82,5 +92,6 @@ private:
 	FVector2D MovementTouchStartLocation;
 	bool RotationCompleted = false;
 
+	UPROPERTY()
 	AActor* SwipeStartActor = nullptr;
 };
