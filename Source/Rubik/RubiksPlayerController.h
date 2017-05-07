@@ -50,7 +50,7 @@ public:
 
 	// Tap or Click
 	UFUNCTION(BlueprintImplementableEvent)
-	virtual void ProcessTap(AActor* tappedActor) = 0;
+	void ProcessTap(AActor* tappedActor);
 
 	UFUNCTION(BlueprintCallable)
 	void UndoMove();
