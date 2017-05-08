@@ -2,43 +2,40 @@
 
 #include "Engine.h"
 
-namespace GameBase
+template<typename T>
+class CalculatedValue
 {
-	template<typename T>
-	class CalculatedValue
+public:
+	DECLARE_DELEGATE_RetVal(T, Delegate);
+
+	CalculatedValue()
+		: IsActual(false)
+		, Value()
+	{}
+
+	T Get()
 	{
-	public:
-		DECLARE_DELEGATE_RetVal(T, Delegate);
-
-		CalculatedValue()
-			: IsActual(false)
-			, Value()
-		{}
-
-		T Get()
+		if (!IsActual)
 		{
-			if (!IsActual)
-			{
-				Value = UpdateDelegate.Execute();
-				IsActual = true;
-			}
-
-			return Value;
+			Value = UpdateDelegate.Execute();
+			IsActual = true;
 		}
 
-		inline void Unactualize()
-		{
-			IsActual = false;
-		}
+		return Value;
+	}
 
-		inline Delegate& RefUpdateDelegate()
-		{
-			return UpdateDelegate;
-		}
+	inline void Unactualize()
+	{
+		IsActual = false;
+	}
 
-	private:
-		T Value;
-		bool IsActual;
-		Delegate UpdateDelegate;
-	};
-} // namespace GameBase
+	inline Delegate& RefUpdateDelegate()
+	{
+		return UpdateDelegate;
+	}
+
+private:
+	T Value;
+	bool IsActual;
+	Delegate UpdateDelegate;
+};

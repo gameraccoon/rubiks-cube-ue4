@@ -9,7 +9,7 @@ namespace RC
 {
 
 	/// some abstract action with Rubik's cube
-	class CubeCommand : public GameBase::Command
+	class CubeCommand : public Command
 	{
 	public:
 		virtual void SetTarget(AActor* receiver);

@@ -186,16 +186,6 @@ bool ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
 	return false;
 }
 
-TSharedPtr<FJsonObject> ARubicsCube::GetCommandsAsJson()
-{
-	return CommandHistory.ToJson();
-}
-
-void ARubicsCube::LoadCommandsFromJson(TSharedPtr<FJsonObject> serialized)
-{
-	CommandHistory.LoadFromJson(serialized);
-}
-
 void ARubicsCube::UndoRotation()
 {
 	FinishRotation();

@@ -2,123 +2,218 @@
 #include "Base/CommandHistory.h"
 #include "Base/CommandFactory.h"
 
-namespace GameBase
+
+UCommandHistory::UCommandHistory()
+	: Current(0)
+	, Reciever(nullptr)
+	, FirstChangableCommand(0)
+	, IsInited(false)
 {
-	CommandHistory::CommandHistory()
-		: Current(0)
-		, Reciever(nullptr)
+}
+
+UCommandHistory::UCommandHistory(AActor* reciever)
+	: Current(0)
+	, Reciever(reciever)
+	, FirstChangableCommand(0)
+	, IsInited(false)
+{
+}
+
+bool UCommandHistory::IsOnHead() const
+{
+	if (!IsInited)
 	{
+		UE_LOG(LogicalError, Error, TEXT("Getting data before initialization"));
 	}
 
-	CommandHistory::CommandHistory(AActor* reciever)
-		: Current(0)
-		, Reciever(reciever)
+	return Current == Commands.Num();
+}
+
+bool UCommandHistory::IsOnTail() const
+{
+	if (!IsInited)
 	{
+		UE_LOG(LogicalError, Error, TEXT("Getting data before initialization"));
+	}
+	return Current == 0;
+}
+
+bool UCommandHistory::IsEmpty() const
+{
+	if (!IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Getting data before initialization"));
+	}
+	return Commands.Num() == 0;
+}
+
+Command::Ptr UCommandHistory::GetNextCommand()
+{
+	if (!IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Getting data before initialization"));
+	}
+	return (IsOnHead() || IsEmpty()) ? Command::Ptr(nullptr) : Commands[Current];
+}
+
+Command::Ptr UCommandHistory::GetPrevCommand()
+{
+	if (!IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Getting data before initialization"));
+	}
+	return (IsOnTail() || IsEmpty()) ? Command::Ptr(nullptr) : Commands[Current-1];
+}
+
+void UCommandHistory::MoveForward()
+{
+	if (!IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Accessing data before initialization"));
 	}
 
-	bool CommandHistory::IsOnHead() const
+	if (!IsOnHead())
 	{
-		return Current == Commands.Num();
-	}
-
-	bool CommandHistory::IsOnTail() const
-	{
-		return Current == 0;
-	}
-
-	bool CommandHistory::IsEmpty() const
-	{
-		return Commands.Num() == 0;
-	}
-
-	Command::Ptr CommandHistory::GetNextCommand()
-	{
-		return (IsOnHead() || IsEmpty()) ? GameBase::Command::Ptr(nullptr) : Commands[Current];
-	}
-
-	Command::Ptr CommandHistory::GetPrevCommand()
-	{
-		return (IsOnTail() || IsEmpty()) ? GameBase::Command::Ptr(nullptr) : Commands[Current-1];
-	}
-
-	void CommandHistory::MoveForward()
-	{
-		if (!IsOnHead()) {
-			++Current;
-		} else {
-			UE_LOG(LogicalError, Error, TEXT("Move forvard from the head of the history"));
-		}
-	}
-
-	void CommandHistory::MoveBackward()
-	{
-		if (!IsOnTail()) {
-			--Current;
-		}
-		else {
-			UE_LOG(LogicalError, Error, TEXT("Move backward from the tail of the history"));
-		}
-	}
-
-	void CommandHistory::AddCommand(Command::Ptr command)
-	{
-		// if we have some commands after the current then remove them
-		ClearNextCommands();
-
-		Commands.Push(command);
 		++Current;
 	}
-
-	void CommandHistory::ClearNextCommands()
+	else
 	{
-		Commands.SetNum(Current);
+		UE_LOG(LogicalError, Error, TEXT("Move forvard from the head of the history"));
+	}
+}
+
+void UCommandHistory::MoveBackward()
+{
+	if (!IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Accessing data before initialization"));
 	}
 
-	TSharedPtr<FJsonObject> CommandHistory::ToJson() const
+	if (!IsOnTail()) {
+		--Current;
+	}
+	else {
+		UE_LOG(LogicalError, Error, TEXT("Move backward from the tail of the history"));
+	}
+}
+
+void UCommandHistory::AddCommand(Command::Ptr command)
+{
+	if (!IsInited)
 	{
-		TSharedPtr<FJsonObject> result = MakeShareable(new FJsonObject());
+		UE_LOG(LogicalError, Error, TEXT("Accessing data before initialization"));
+	}
 
-		TArray<TSharedPtr<FJsonValue>> serializedCommands;
+	// if we have some commands after the current then remove them
+	ClearNextCommands();
 
-		for (const auto& element : Commands)
+	Commands.Push(command);
+	++Current;
+}
+
+void UCommandHistory::ClearNextCommands()
+{
+	if (!IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Accessing data before initialization"));
+	}
+
+	Commands.SetNum(Current);
+}
+
+TArray<FString> UCommandHistory::GetSerializedCommands() const
+{
+	if (!IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Getting data before initialization"));
+	}
+
+	TArray<FString> Result;
+	Result.Reserve(Commands.Num());
+
+	for (const auto& Command : Commands)
+	{
+		Result.Push(Command->Serialize());
+	}
+
+	return Result;
+}
+
+void UCommandHistory::DeserializeCommands(const TArray<FString>& SerializedCommands)
+{
+	if (IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Double initialization"));
+		return;
+	}
+
+	Commands.Reserve(SerializedCommands.Num());
+
+	for (const auto& Seralized : SerializedCommands)
+	{
+		Command::Ptr Command = CommandFactory::Get().CreateFromSerialized(Seralized);
+		if (Command.IsValid())
 		{
-			TSharedPtr<FJsonObject> jsonObject = element->ToJson();
-			serializedCommands.Add(MakeShareable(new FJsonValueObject(jsonObject)));
+			Commands.Push(Command);
+			Command->SetTarget(Reciever);
 		}
-
-		result->SetArrayField("commands", serializedCommands);
-		result->SetNumberField("activeCommandIdx", Current);
-
-		return result;
-	}
-
-	void CommandHistory::LoadFromJson(const TSharedPtr<FJsonObject> serialized)
-	{
-		TSharedPtr<FJsonObject> result = MakeShareable(new FJsonObject());
-
-		TArray<TSharedPtr<FJsonValue>> serializedCommands = serialized->GetArrayField("commands");
-
-		Commands.Reserve(serializedCommands.Num());
-
-		for (const auto& element : serializedCommands)
+		else
 		{
-			Command::Ptr command = CommandFactory::Get().CreateFromJson(element->AsObject());
-			if (command.IsValid())
-			{
-				Commands.Push(command);
-				command->SetTarget(Reciever);
-				command->Execute();
-			}
-			else
-			{
-				UE_LOG(LogicalError, Error, TEXT("Problem with deserializing commands"));
-				Commands.Empty();
-				Current = 0;
-				return;
-			}
+			UE_LOG(LogicalError, Error, TEXT("Problem with deserializing commands"));
+			Commands.Empty();
+			Current = 0;
+			return;
 		}
+	}
+}
 
-		Current = serialized->GetIntegerField("activeCommandIdx");
+int UCommandHistory::GetCurrentCommand() const
+{
+	if (!IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Getting data before initialization"));
 	}
 
-} // namespace GameBase
+	return Current;
+}
+
+void UCommandHistory::SetCurrentCommand(int CommandIndex)
+{
+	if (IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Double initialization"));
+	}
+
+	Current = CommandIndex;
+}
+
+int UCommandHistory::GetFirstChangableCommand() const
+{
+	if (!IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Getting data before initialization"));
+	}
+
+	return FirstChangableCommand;
+}
+
+void UCommandHistory::SetFirstChangableCommand(int CommandIndex)
+{
+	if (IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Double initialization"));
+	}
+
+	FirstChangableCommand = CommandIndex;
+}
+
+void UCommandHistory::SetInited()
+{
+	if (IsInited)
+	{
+		UE_LOG(LogicalError, Error, TEXT("Getting data before initialization"));
+	}
+
+	IsInited = true;
+}
+

@@ -2,29 +2,32 @@
 #include "Base/CommandHistory.h"
 #include "CommandFactory.h"
 
-namespace GameBase
+
+CommandFactory & CommandFactory::Get()
 {
-	CommandFactory & CommandFactory::Get()
-	{
-		static CommandFactory instance;
-		return instance;
-	}
+	static CommandFactory Instance;
+	return Instance;
+}
 
-	void CommandFactory::RegisterCommand(const FString & commandId, CreateCommandCallback createFn)
-	{
-		callbacks.Add(commandId, createFn);
-	}
+void CommandFactory::RegisterCommand(const FString& CommandId, CreateCommandCallback CreateFn)
+{
+	Callbacks.Add(CommandId, CreateFn);
+}
 
-	Command::Ptr CommandFactory::CreateFromJson(TSharedPtr<FJsonObject> serialized)
-	{
-		auto callback = callbacks.Find(serialized->GetStringField("commandId"));
+Command::Ptr CommandFactory::CreateFromSerialized(const FString& Serialized)
+{
+	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Serialized);
+	TSharedPtr<FJsonObject> JsonObject;
 
-		if (callback)
+	auto Callback = Callbacks.Find(JsonObject->GetStringField("commandId"));
+	
+	if (FJsonSerializer::Deserialize(Reader, JsonObject))
+	{
+		if (Callback)
 		{
-			return Command::Ptr(nullptr);
+			return (*Callback)(JsonObject);
 		}
-
-		return (*callback)(serialized);
 	}
 
-} // namespace GameBase
+	return Command::Ptr(nullptr);
+}

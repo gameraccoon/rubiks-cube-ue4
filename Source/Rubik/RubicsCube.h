@@ -21,52 +21,52 @@ public:
 
 	/** size in elements */
 	UPROPERTY(EditAnywhere, Category = "Parameters", meta = (ClampMin = "2", ClampMax = "5", UIMin = "2", UIMax = "5"))
-		uint8 GridSize;
+	uint8 GridSize;
 
 	/** whole cube size in units */
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-		float InitialSize;
+	float InitialSize;
 
 	/** single block size in units */
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-		float InitialBlockSize;
+	float InitialBlockSize;
 
 	/** cubic's type */
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-		FName Type;
+	FName Type;
 
 	UPROPERTY(EditAnywhere, Category = "Colors")
-		UMaterialInstanceConstant * SideColor1;
+	UMaterialInstanceConstant * SideColor1;
 
 	UPROPERTY(EditAnywhere, Category = "Colors")
-		UMaterialInstanceConstant * SideColor2;
+	UMaterialInstanceConstant * SideColor2;
 
 	UPROPERTY(EditAnywhere, Category = "Colors")
-		UMaterialInstanceConstant * SideColor3;
+	UMaterialInstanceConstant * SideColor3;
 
 	UPROPERTY(EditAnywhere, Category = "Colors")
-		UMaterialInstanceConstant * SideColor4;
+	UMaterialInstanceConstant * SideColor4;
 
 	UPROPERTY(EditAnywhere, Category = "Colors")
-		UMaterialInstanceConstant * SideColor5;
+	UMaterialInstanceConstant * SideColor5;
 
 	UPROPERTY(EditAnywhere, Category = "Colors")
-		UMaterialInstanceConstant * SideColor6;
+	UMaterialInstanceConstant * SideColor6;
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
-		void UndoRotation();
+	void UndoRotation();
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
-		void RedoRotation();
+	void RedoRotation();
 
 public:
-	// Sets default values for this actor's properties
+	/** Sets default values for this actor's properties */
 	ARubicsCube(const class FObjectInitializer& OI);
 
-	// Called when the game starts or when spawned
+	/** Called when the game starts or when spawned */
 	virtual void BeginPlay() override;
 	
-	// Called every frame
+	/** Called every frame */
 	virtual void Tick(float DeltaSeconds) override;
 
 	inline void ScheduleUpdateParts() { IsNeedUpdateParts = true; }
@@ -74,12 +74,9 @@ public:
 	// returns false if rotation wasn't added
 	bool AddRotation(const RC::RotationAxis& axis, int layerIndex);
 
-	TSharedPtr<FJsonObject> GetCommandsAsJson();
-	void LoadCommandsFromJson(TSharedPtr<FJsonObject> serialized);
-
 private:
-	GameBase::CommandHistory CommandHistory;
-	GameBase::Command::Ptr CurrentCommand;
+	UCommandHistory CommandHistory;
+	Command::Ptr CurrentCommand;
 	float CommandProgress;
 
 	TSharedPtr<RC::CubeParts> Parts;

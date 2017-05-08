@@ -8,11 +8,11 @@ namespace RC
 {
 	static const FString ROTATION_COMMAND_ID = "RotationCommand";
 
-	RotationCommand::RotationCommand(RotationAxis axis, int layerIdx)
+	RotationCommand::RotationCommand(RotationAxis Axis, int LayerIdx)
 		: CubeCommand()
 		, IsExecuted(false)
-		, Axis(axis)
-		, LayerIndex(layerIdx)
+		, Axis(Axis)
+		, LayerIndex(LayerIdx)
 	{}
 
 	RotationCommand::RotationCommand()
@@ -25,15 +25,15 @@ namespace RC
 	{
 	}
 
-	GameBase::Command::Ptr RotationCommand::Create(RotationAxis axis, int layerIdx)
+	Command::Ptr RotationCommand::Create(RotationAxis Axis, int LayerIdx)
 	{
-		return MakeShareable(new RotationCommand(axis, layerIdx));
+		return MakeShareable(new RotationCommand(Axis, LayerIdx));
 	}
 
-	GameBase::Command::Ptr RotationCommand::Create(TSharedPtr<FJsonObject> serialized)
+	Command::Ptr RotationCommand::Create(const TSharedPtr<FJsonObject> Serialized)
 	{
 		Command::Ptr result = MakeShareable(new RotationCommand());
-		result->InitFromJson(serialized);
+		result->Deserialize(Serialized);
 		return result;
 	}
 
@@ -63,8 +63,8 @@ namespace RC
 		IsExecuted = false;
 		SetProgress(0.0f);
 
-		ARubicsCube* cube = GetTarget();
-		cube->Parts->RenewPartsLocations(-Axis, cube->GridSize - 1 - LayerIndex);
+		ARubicsCube* Cube = GetTarget();
+		Cube->Parts->RenewPartsLocations(-Axis, Cube->GridSize - 1 - LayerIndex);
 	}
 
 	bool RotationCommand::IsContinious()
@@ -72,36 +72,47 @@ namespace RC
 		return true;
 	}
 
-	void RotationCommand::SetProgress(float progress)
+	void RotationCommand::SetProgress(float Progress)
 	{
-		if (progress < -0.001f || progress > 1.001f)
+		if (Progress < -0.001f || Progress > 1.001f)
 		{
 			UE_LOG(LogicalError, Error, TEXT("Incorrect progress value"));
 			return;
 		}
 
-		ARubicsCube* cube = GetTarget();
-		cube->Parts->RotateSlice(Axis, LayerIndex, progress * 90.0f);
+		ARubicsCube* Cube = GetTarget();
+		Cube->Parts->RotateSlice(Axis, LayerIndex, Progress * 90.0f);
 	}
 
-	TSharedPtr<FJsonObject> RotationCommand::ToJson() const
+	FString RotationCommand::Serialize() const
 	{
-		TSharedPtr<FJsonObject> result = MakeShareable(new FJsonObject());
-		result->SetStringField("axis", Axis.ToString());
-		result->SetNumberField("layerIndex", LayerIndex);
-		result->SetStringField("commandId", ROTATION_COMMAND_ID);
-		return result;
+		TSharedRef<FJsonObject> Json = MakeShareable(new FJsonObject());
+		Json->SetStringField("type", GetType());
+		Json->SetStringField("axis", Axis.ToString());
+		Json->SetNumberField("layerIndex", LayerIndex);
+		Json->SetStringField("commandId", ROTATION_COMMAND_ID);
+		Json->SetBoolField("isExecuted", IsExecuted);
+
+		FString OutputString;
+		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+		FJsonSerializer::Serialize(Json, Writer);
+		return OutputString;
 	}
 
-	void RotationCommand::InitFromJson(const TSharedPtr<FJsonObject> serialized)
+	void RotationCommand::Deserialize(const TSharedPtr<FJsonObject> Serialized)
 	{
-		Axis = RC::RotationAxis(serialized->GetStringField("axis"));
-		LayerIndex = (int32)serialized->GetNumberField("layerIndex");
-		IsExecuted = false;
+		Axis = RC::RotationAxis(Serialized->GetStringField("axis"));
+		LayerIndex = (int32)Serialized->GetNumberField("layerIndex");
+		IsExecuted = Serialized->GetBoolField("isExecuted");
+	}
+
+	FString RotationCommand::GetType() const
+	{
+		return ROTATION_COMMAND_ID;
 	}
 
 	void RotationCommand::RegisterInFabric()
 	{
-		GameBase::CommandFactory::Get().RegisterCommand(ROTATION_COMMAND_ID, RC::RotationCommand::Create);
+		CommandFactory::Get().RegisterCommand(ROTATION_COMMAND_ID, RC::RotationCommand::Create);
 	}
 }

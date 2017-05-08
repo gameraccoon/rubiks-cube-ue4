@@ -40,7 +40,7 @@ namespace RC
 			PartInfo() : ptr(nullptr) {}
 		};
 
-		typedef GameBase::Matrix<PartInfo*> Slice;
+		typedef Matrix<PartInfo*> Slice;
 
 	private:
 		void RotatePart(PartInfo* part, const FRotator& rotation);
@@ -54,11 +54,11 @@ namespace RC
 		void RearrangeSideControls(AActor * side, const Coord& coord);
 
 	private:
-		GameBase::Array3D<PartInfo> parts;
+		Array3D<PartInfo> parts;
 		float initialBlockSize;
 		FVector centerShift;
 
 		FVector mainLocation;
 		FQuat mainRotation;
 	};
-} // namespace GameBase
+} // namespace RC

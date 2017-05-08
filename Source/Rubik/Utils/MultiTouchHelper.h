@@ -43,9 +43,9 @@ namespace Utils
 	private:
 		TMap<uint32, TouchInfo> Touches;
 
-		GameBase::CalculatedValue<FVector2D> TouchesCenter;
-		GameBase::CalculatedValue<float> SpinAngle;
-		GameBase::CalculatedValue<float> PitchSize;
-		GameBase::CalculatedValue<FVector2D> MoveVector;
+		CalculatedValue<FVector2D> TouchesCenter;
+		CalculatedValue<float> SpinAngle;
+		CalculatedValue<float> PitchSize;
+		CalculatedValue<FVector2D> MoveVector;
 	};
 } // namespace GameBase
