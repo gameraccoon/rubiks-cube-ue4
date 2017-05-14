@@ -2,6 +2,7 @@
 
 #include "Base/Matrix.h"
 #include "RCRotationAxis.h"
+#include "RubikPart.h"
 #include "Engine.h"
 
 namespace RC
@@ -9,15 +10,9 @@ namespace RC
 	class CubeParts
 	{
 	public:
-		struct Coord {
-			Coord(int _x, int _y, int _z) : x(_x), y(_y), z(_z) {}
-			int x, y, z;
-		};
-
-	public:
 		CubeParts(int length, int width, int height, float initialBlockSize, FVector centerShift);
 
-		void InsertPart(AActor* part, Coord pos);
+		void InsertPart(ARubikPart* part, Coord pos);
 		void RotateSlice(RotationAxis axis, int pos, float angle);
 		void RenewPartsLocations(RotationAxis axis, int pos);
 
@@ -26,8 +21,10 @@ namespace RC
 
 		void UpdateAllParts();
 
+		bool IsAssembled();
+
 	private:
-		typedef AActor* PartPtr;
+		typedef ARubikPart* PartPtr;
 
 		struct PartInfo {
 			PartPtr ptr;

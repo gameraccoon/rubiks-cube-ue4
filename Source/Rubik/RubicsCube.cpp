@@ -17,6 +17,7 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	, Type("Standart")
 	, IsNeedUpdateParts(false)
 	, RotationSpeed(10.0f)
+	, IsReady(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -41,6 +42,10 @@ void ARubicsCube::BeginPlay()
 	CommandProgress = 0.0f;
 
 	CommandHistory->MarkInited();
+
+	IsReady = true;
+
+	OnReady.Broadcast();
 }
 
 // Called every frame
@@ -89,7 +94,7 @@ void ARubicsCube::InitCube()
 		{
 			for (int i = 0; i < GridSize; ++i)
 			{
-				InitCubePart(world, RC::CubeParts::Coord(i, j, k));
+				InitCubePart(world, Coord(i, j, k));
 			}
 		}
 	}
@@ -116,7 +121,7 @@ UMaterialInstanceConstant * ARubicsCube::GetSideMaterial(int sideNum)
 	}
 }
 
-void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, const RC::CubeParts::Coord& coord)
+void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, const Coord& coord)
 {
 	UStaticMeshComponent* component = Cast<UStaticMeshComponent>(actor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
 	TArray<FName> socketNames = component->GetAllSocketNames();
@@ -162,14 +167,14 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 	}
 }
 
-void ARubicsCube::InitCubePart(UWorld * const world, const RC::CubeParts::Coord& coord)
+void ARubicsCube::InitCubePart(UWorld * const world, const Coord& coord)
 {
-	AActor * actor = world->SpawnActor<ARubiksBlock_Standart>(ARubiksBlock_Standart::StaticClass());
+	ARubiksBlock_Standart* Part = world->SpawnActor<ARubiksBlock_Standart>(ARubiksBlock_Standart::StaticClass());
 
-	if (actor != nullptr)
+	if (Part)
 	{
-		Parts->InsertPart(actor, coord);
-		AttachSidesToSockets(world, actor, coord);
+		Parts->InsertPart(Part, coord);
+		AttachSidesToSockets(world, Part, coord);
 	}
 }
 
@@ -257,4 +262,9 @@ void ARubicsCube::FinishRotation()
 
 	CurrentCommand = nullptr;
 	CommandProgress = 0.0f;
+
+	if (Parts->IsAssembled())
+	{
+		OnAssembled.Broadcast();
+	}
 }

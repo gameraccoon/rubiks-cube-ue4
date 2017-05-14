@@ -14,7 +14,7 @@ namespace RC
 	{
 	}
 
-	void CubeParts::InsertPart(AActor* part, Coord pos)
+	void CubeParts::InsertPart(ARubikPart* part, Coord pos)
 	{
 		PartInfo& partInfo = parts[pos.x][pos.y][pos.z];
 
@@ -26,6 +26,7 @@ namespace RC
 		if (!part)
 		{
 			UE_LOG(LogicalError, Error, TEXT("Part is NULL"));
+			return;
 		}
 
 		FVector location(FVector(pos.x, pos.y, pos.z) * initialBlockSize);
@@ -33,6 +34,7 @@ namespace RC
 
 		part->SetActorLocation(mainLocation + mainRotation.RotateVector(location + centerShift));
 		part->SetActorRotation((mainRotation * roataion).Rotator());
+		part->InitialPos = pos;
 
 		partInfo.ptr = part;
 		partInfo.localLocation = location + centerShift;
@@ -231,6 +233,29 @@ namespace RC
 		}
 
 		RearrangeControls();
+	}
+
+	bool CubeParts::IsAssembled()
+	{
+		for (unsigned int z = 0, zSize = parts.getHeight(); z < zSize; ++z)
+		{
+			for (unsigned int y = 0, ySize = parts.getWidth(); y < ySize; ++y)
+			{
+				for (unsigned int x = 0, xSize = parts.getLength(); x < xSize; ++x)
+				{
+					PartInfo &part = parts[x][y][z];
+					if (part.ptr)
+					{
+						auto pos = part.ptr->InitialPos;
+						if (pos.x != x || pos.y != y || pos.z != z)
+						{
+							return false;
+						}
+					}
+				}
+			}
+		}
+		return true;
 	}
 
 	void CubeParts::RearrangeControls()

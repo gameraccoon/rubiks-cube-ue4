@@ -65,6 +65,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SaveLoad")
 	void SetHistory(UCommandHistory* NewHistory);
 
+	UPROPERTY(BlueprintReadOnly)
+	bool IsReady;
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSimpleMulticastDelegate);
+
+	UPROPERTY(BlueprintAssignable)
+	FSimpleMulticastDelegate OnReady;
+
+	UPROPERTY(BlueprintAssignable)
+	FSimpleMulticastDelegate OnAssembled;
+
 public:
 	/** Sets default values for this actor's properties */
 	ARubicsCube(const class FObjectInitializer& OI);
@@ -98,10 +109,10 @@ private:
 
 private:
 	void InitCube();
-	void InitCubePart(UWorld * const world, const RC::CubeParts::Coord& coord);
+	void InitCubePart(UWorld * const world, const Coord& coord);
 
 	UMaterialInstanceConstant * GetSideMaterial(int sideNum);
-	void AttachSidesToSockets(UWorld * const world, AActor * actor, const RC::CubeParts::Coord& coord);
+	void AttachSidesToSockets(UWorld * const world, AActor * actor, const Coord& coord);
 
 	void UpdateParts();
 
