@@ -18,7 +18,7 @@ public:
 	/** return true if there is not command in front of the current state */
 	bool IsOnHead() const;
 	/** retrun true if there is no command in back of the current state */
-	bool IsOnTail() const;
+	bool IsOnTail(bool IgnoreChangeLimit = false) const;
 	/** retrun true if history is empty */
 	bool IsEmpty() const;
 	/** return the next command or nullptr if history is empty */

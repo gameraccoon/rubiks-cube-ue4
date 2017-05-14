@@ -236,6 +236,41 @@ void ARubicsCube::SetHistory(UCommandHistory* NewHistory)
 	}
 }
 
+void ARubicsCube::MakeRandomMoves(int Count)
+{
+	for (int i = 0; i < Count; ++i)
+	{
+		int AxisIndex = FMath::Rand() % 6;
+		RC::RotationAxis Axis;
+		switch (AxisIndex)
+		{
+		case 0:
+			Axis = RC::RotationAxis::FX;
+			break;
+		case 1:
+			Axis = RC::RotationAxis::FY;
+			break;
+		case 2:
+			Axis = RC::RotationAxis::FZ;
+			break;
+		case 3:
+			Axis = RC::RotationAxis::RX;
+			break;
+		case 4:
+			Axis = RC::RotationAxis::RY;
+			break;
+		case 5:
+			Axis = RC::RotationAxis::RZ;
+			break;
+		default:
+			break;
+		}
+
+		int LayerIndex = FMath::Rand() % GridSize;
+		AddRotation(Axis, LayerIndex);
+	}
+}
+
 void ARubicsCube::FinishRotation()
 {
 	if (!CurrentCommand.IsValid())

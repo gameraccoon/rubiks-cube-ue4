@@ -26,13 +26,20 @@ bool UCommandHistory::IsOnHead() const
 	return Current == Commands.Num();
 }
 
-bool UCommandHistory::IsOnTail() const
+bool UCommandHistory::IsOnTail(bool IgnoreChangeLimit) const
 {
 	if (!IsInited)
 	{
 		UE_LOG(LogicalError, Error, TEXT("Getting data before initialization"));
 	}
-	return Current == 0;
+	if (IgnoreChangeLimit)
+	{
+		return Current == 0;
+	}
+	else
+	{
+		return Current <= FirstChangableCommand;
+	}
 }
 
 bool UCommandHistory::IsEmpty() const
@@ -59,7 +66,7 @@ Command::Ptr UCommandHistory::GetPrevCommand()
 	{
 		UE_LOG(LogicalError, Error, TEXT("Getting data before initialization"));
 	}
-	return (IsOnTail() || IsEmpty()) ? Command::Ptr(nullptr) : Commands[Current-1];
+	return (IsOnTail(true) || IsEmpty()) ? Command::Ptr(nullptr) : Commands[Current-1];
 }
 
 void UCommandHistory::MoveForward()
@@ -86,7 +93,7 @@ void UCommandHistory::MoveBackward()
 		UE_LOG(LogicalError, Error, TEXT("Accessing data before initialization"));
 	}
 
-	if (!IsOnTail()) {
+	if (!IsOnTail(true)) {
 		--Current;
 	}
 	else {
@@ -225,10 +232,9 @@ void UCommandHistory::MarkInited()
 
 void UCommandHistory::UnexecuteAll()
 {
-	while (!IsOnTail())
+	while (!IsOnTail(true))
 	{
 		GetPrevCommand()->Unexecute();
 		MoveBackward();
 	}
 }
-

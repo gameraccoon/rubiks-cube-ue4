@@ -76,6 +76,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FSimpleMulticastDelegate OnAssembled;
 
+	UFUNCTION(BlueprintCallable, Category = "Randomize")
+	void MakeRandomMoves(int Count);
+
 public:
 	/** Sets default values for this actor's properties */
 	ARubicsCube(const class FObjectInitializer& OI);
