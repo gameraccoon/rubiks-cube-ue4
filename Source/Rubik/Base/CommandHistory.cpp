@@ -11,12 +11,9 @@ UCommandHistory::UCommandHistory()
 {
 }
 
-UCommandHistory::UCommandHistory(AActor* reciever)
-	: Current(0)
-	, Reciever(reciever)
-	, FirstChangableCommand(0)
-	, IsInited(false)
+void UCommandHistory::SetReceiver(AActor* reciever)
 {
+	Reciever = reciever;
 }
 
 bool UCommandHistory::IsOnHead() const
@@ -149,6 +146,8 @@ void UCommandHistory::DeserializeCommands(const TArray<FString>& SerializedComma
 
 	Commands.Reserve(SerializedCommands.Num());
 
+	int Index = 0;
+
 	for (const auto& Seralized : SerializedCommands)
 	{
 		Command::Ptr Command = CommandFactory::Get().CreateFromSerialized(Seralized);
@@ -156,6 +155,11 @@ void UCommandHistory::DeserializeCommands(const TArray<FString>& SerializedComma
 		{
 			Commands.Push(Command);
 			Command->SetTarget(Reciever);
+
+			if (Index < Current)
+			{
+				Command->Execute();
+			}
 		}
 		else
 		{
@@ -164,6 +168,8 @@ void UCommandHistory::DeserializeCommands(const TArray<FString>& SerializedComma
 			Current = 0;
 			return;
 		}
+
+		++Index;
 	}
 }
 
@@ -207,7 +213,7 @@ void UCommandHistory::SetFirstChangableCommand(int CommandIndex)
 	FirstChangableCommand = CommandIndex;
 }
 
-void UCommandHistory::SetInited()
+void UCommandHistory::MarkInited()
 {
 	if (IsInited)
 	{
@@ -215,5 +221,14 @@ void UCommandHistory::SetInited()
 	}
 
 	IsInited = true;
+}
+
+void UCommandHistory::UnexecuteAll()
+{
+	while (!IsOnTail())
+	{
+		GetPrevCommand()->Unexecute();
+		MoveBackward();
+	}
 }
 

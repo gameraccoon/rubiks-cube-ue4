@@ -48,8 +48,11 @@ namespace RC
 		IsExecuted = true;
 		SetProgress(1.0f);
 
-		ARubicsCube* cube = GetTarget();
-		cube->Parts->RenewPartsLocations(Axis, LayerIndex);
+		ARubicsCube* Cube = GetTarget();
+		if (Cube && Cube->IsValidLowLevel())
+		{
+			Cube->Parts->RenewPartsLocations(Axis, LayerIndex);
+		}
 	}
 
 	void RotationCommand::Unexecute()
@@ -64,7 +67,10 @@ namespace RC
 		SetProgress(0.0f);
 
 		ARubicsCube* Cube = GetTarget();
-		Cube->Parts->RenewPartsLocations(-Axis, Cube->GridSize - 1 - LayerIndex);
+		if (Cube && Cube->IsValidLowLevel())
+		{
+			Cube->Parts->RenewPartsLocations(-Axis, Cube->GridSize - 1 - LayerIndex);
+		}
 	}
 
 	bool RotationCommand::IsContinious()
@@ -81,7 +87,10 @@ namespace RC
 		}
 
 		ARubicsCube* Cube = GetTarget();
-		Cube->Parts->RotateSlice(Axis, LayerIndex, Progress * 90.0f);
+		if (Cube && Cube->IsValidLowLevel())
+		{
+			Cube->Parts->RotateSlice(Axis, LayerIndex, Progress * 90.0f);
+		}
 	}
 
 	FString RotationCommand::Serialize() const
@@ -90,8 +99,6 @@ namespace RC
 		Json->SetStringField("type", GetType());
 		Json->SetStringField("axis", Axis.ToString());
 		Json->SetNumberField("layerIndex", LayerIndex);
-		Json->SetStringField("commandId", ROTATION_COMMAND_ID);
-		Json->SetBoolField("isExecuted", IsExecuted);
 
 		FString OutputString;
 		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
@@ -103,7 +110,6 @@ namespace RC
 	{
 		Axis = RC::RotationAxis(Serialized->GetStringField("axis"));
 		LayerIndex = (int32)Serialized->GetNumberField("layerIndex");
-		IsExecuted = Serialized->GetBoolField("isExecuted");
 	}
 
 	FString RotationCommand::GetType() const

@@ -11,7 +11,9 @@ class UCommandHistory : public UObject
 
 public:
 	UCommandHistory();
-	UCommandHistory(AActor* reciever);
+	
+	/** Set the actor that will be changed using commands */
+	void SetReceiver(AActor* reciever);
 
 	/** return true if there is not command in front of the current state */
 	bool IsOnHead() const;
@@ -54,7 +56,12 @@ public:
 	void SetFirstChangableCommand(int CommandIndex);
 
 	/** Mark history initialized (so we can't init data after this) */
-	void SetInited();
+	UFUNCTION(BlueprintCallable)
+	void MarkInited();
+
+	/** Undo all the executed commands */
+	UFUNCTION(BlueprintCallable)
+	void UnexecuteAll();
 
 private:
 	AActor* Reciever;

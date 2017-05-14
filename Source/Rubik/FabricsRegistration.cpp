@@ -5,6 +5,8 @@
 
 namespace GameBase
 {
+	static bool IsRegistred = false;
+
 	void RegisterCommands()
 	{
 		RC::RotationCommand::RegisterInFabric();
@@ -12,6 +14,12 @@ namespace GameBase
 
 	void RegisterAll()
 	{
+		if (IsRegistred)
+		{
+			return;
+		}
+
+		IsRegistred = true;
 		RegisterCommands();
 	}
 

@@ -59,6 +59,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Actions")
 	void RedoRotation();
 
+	UFUNCTION(BlueprintCallable, Category = "SaveLoad")
+	UCommandHistory* GetHistory();
+
+	UFUNCTION(BlueprintCallable, Category = "SaveLoad")
+	void SetHistory(UCommandHistory* NewHistory);
+
 public:
 	/** Sets default values for this actor's properties */
 	ARubicsCube(const class FObjectInitializer& OI);
@@ -75,7 +81,10 @@ public:
 	bool AddRotation(const RC::RotationAxis& axis, int layerIndex);
 
 private:
-	UCommandHistory CommandHistory;
+
+	UPROPERTY()
+	UCommandHistory* CommandHistory;
+
 	Command::Ptr CurrentCommand;
 	float CommandProgress;
 

@@ -180,6 +180,12 @@ bool ARubiksPlayerController::InputMotion(const FVector& Tilt, const FVector& Ro
 	return true;
 }
 
+ARubicsCube * ARubiksPlayerController::GetCube()
+{
+	CheckAllComponents();
+	return MainCube;
+}
+
 void ARubiksPlayerController::RotateCube(const FRotator& rotation)
 {
 	CheckAllComponents();
@@ -326,24 +332,4 @@ AActor* ARubiksPlayerController::GetActorUnderPoint(const FVector2D& point) cons
 	FVector target = location + (direction * endOffset);
 	GetWorld()->LineTraceSingleByChannel(hit, location, target, ECC_GameTraceChannel1, TraceParams);
 	return hit.GetActor();
-}
-
-void ARubiksPlayerController::UndoMove()
-{
-	CheckAllComponents();
-
-	if (MainCube)
-	{
-		MainCube->UndoRotation();
-	}
-}
-
-void ARubiksPlayerController::RedoMove()
-{
-	CheckAllComponents();
-
-	if (MainCube)
-	{
-		MainCube->RedoRotation();
-	}
 }

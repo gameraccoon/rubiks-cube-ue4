@@ -17,7 +17,6 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	, Type("Standart")
 	, IsNeedUpdateParts(false)
 	, RotationSpeed(10.0f)
-	, CommandHistory(this)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -36,9 +35,12 @@ void ARubicsCube::BeginPlay()
 
 	InitCube();
 
+	CommandHistory = NewObject<UCommandHistory>();
+	CommandHistory->SetReceiver(this);
+
 	CommandProgress = 0.0f;
 
-	//RubiksGameState* gameState =  Cast<RubiksGameState>(GetWorld()->GameState);
+	CommandHistory->MarkInited();
 }
 
 // Called every frame
@@ -178,7 +180,7 @@ bool ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
 	IsMovingFront = true;
 	if (!CurrentCommand.IsValid())
 	{
-		CommandHistory.ClearNextCommands();
+		CommandHistory->ClearNextCommands();
 		CurrentCommand = RC::RotationCommand::Create(axis, layerIndex);
 		CurrentCommand->SetTarget(this);
 		return true;
@@ -191,11 +193,11 @@ void ARubicsCube::UndoRotation()
 	FinishRotation();
 
 	IsMovingFront = false;
-	if (!CurrentCommand.IsValid() && !CommandHistory.IsOnTail())
+	if (!CurrentCommand.IsValid() && !CommandHistory->IsOnTail())
 	{
-		CurrentCommand = CommandHistory.GetPrevCommand();
+		CurrentCommand = CommandHistory->GetPrevCommand();
 		CurrentCommand->Unexecute();
-		CommandHistory.MoveBackward();
+		CommandHistory->MoveBackward();
 	}
 }
 
@@ -204,9 +206,28 @@ void ARubicsCube::RedoRotation()
 	FinishRotation();
 
 	IsMovingFront = true;
-	if (!CurrentCommand.IsValid() && !CommandHistory.IsOnHead())
+	if (!CurrentCommand.IsValid() && !CommandHistory->IsOnHead())
 	{
-		CurrentCommand = CommandHistory.GetNextCommand();
+		CurrentCommand = CommandHistory->GetNextCommand();
+	}
+}
+
+UCommandHistory* ARubicsCube::GetHistory()
+{
+	return CommandHistory;
+}
+
+void ARubicsCube::SetHistory(UCommandHistory* NewHistory)
+{
+	if (NewHistory && NewHistory->IsValidLowLevel())
+	{
+		if (CommandHistory && CommandHistory->IsValidLowLevel())
+		{
+			CommandHistory->SetReceiver(nullptr);
+		}
+
+		CommandHistory = NewHistory;
+		CommandHistory->SetReceiver(this);
 	}
 }
 
@@ -220,13 +241,13 @@ void ARubicsCube::FinishRotation()
 	if (IsMovingFront)
 	{
 		CurrentCommand->Execute();
-		if (CommandHistory.IsOnHead())
+		if (CommandHistory->IsOnHead())
 		{
-			CommandHistory.AddCommand(CurrentCommand.ToSharedRef());
+			CommandHistory->AddCommand(CurrentCommand.ToSharedRef());
 		}
 		else
 		{
-			CommandHistory.MoveForward();
+			CommandHistory->MoveForward();
 		}
 	}
 	else

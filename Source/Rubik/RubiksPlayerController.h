@@ -52,11 +52,8 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ProcessTap(AActor* tappedActor);
 
-	UFUNCTION(BlueprintCallable)
-	void UndoMove();
-
-	UFUNCTION(BlueprintCallable)
-	void RedoMove();
+	UFUNCTION(BlueprintCallable, Category = "Getters")
+	ARubicsCube* GetCube();
 
 private:
 	void RotateCube(const FRotator& rotation);

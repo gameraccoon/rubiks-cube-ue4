@@ -1,10 +1,12 @@
 #include "Rubik.h"
 #include "Base/CommandHistory.h"
 #include "CommandFactory.h"
+#include "FabricsRegistration.h"
 
 
-CommandFactory & CommandFactory::Get()
+CommandFactory& CommandFactory::Get()
 {
+	GameBase::RegisterAll();
 	static CommandFactory Instance;
 	return Instance;
 }
@@ -19,11 +21,9 @@ Command::Ptr CommandFactory::CreateFromSerialized(const FString& Serialized)
 	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Serialized);
 	TSharedPtr<FJsonObject> JsonObject;
 
-	auto Callback = Callbacks.Find(JsonObject->GetStringField("commandId"));
-	
 	if (FJsonSerializer::Deserialize(Reader, JsonObject))
 	{
-		if (Callback)
+		if (auto Callback = Callbacks.Find(JsonObject->GetStringField("type")))
 		{
 			return (*Callback)(JsonObject);
 		}
