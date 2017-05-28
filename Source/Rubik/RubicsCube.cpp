@@ -178,19 +178,17 @@ void ARubicsCube::InitCubePart(UWorld * const world, const Coord& coord)
 	}
 }
 
-bool ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
+void ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
 {
 	FinishRotation();
 
 	IsMovingFront = true;
 	if (!CurrentCommand.IsValid())
 	{
-		CommandHistory->ClearNextCommands();
 		CurrentCommand = RC::RotationCommand::Create(axis, layerIndex);
 		CurrentCommand->SetTarget(this);
-		return true;
+		CommandHistory->AddCommand(CurrentCommand.ToSharedRef());
 	}
-	return false;
 }
 
 void ARubicsCube::UndoRotation()
@@ -204,6 +202,7 @@ void ARubicsCube::UndoRotation()
 		CurrentCommand->Unexecute();
 		CommandHistory->MoveBackward();
 	}
+	OnMoveDone.Broadcast();
 }
 
 void ARubicsCube::RedoRotation()
@@ -214,7 +213,10 @@ void ARubicsCube::RedoRotation()
 	if (!CurrentCommand.IsValid() && !CommandHistory->IsOnHead())
 	{
 		CurrentCommand = CommandHistory->GetNextCommand();
+		CommandHistory->MoveForward();
 	}
+
+	OnMoveDone.Broadcast();
 }
 
 UCommandHistory* ARubicsCube::GetHistory()
@@ -234,6 +236,11 @@ void ARubicsCube::SetHistory(UCommandHistory* NewHistory)
 		CommandHistory = NewHistory;
 		CommandHistory->SetReceiver(this);
 	}
+}
+
+void ARubicsCube::OnHistoryLoaded()
+{
+	OnMoveDone.Broadcast();
 }
 
 void ARubicsCube::MakeRandomMoves(int Count)
@@ -269,6 +276,7 @@ void ARubicsCube::MakeRandomMoves(int Count)
 		int LayerIndex = FMath::Rand() % GridSize;
 		AddRotation(Axis, LayerIndex);
 	}
+	OnMoveDone.Broadcast();
 }
 
 void ARubicsCube::FinishRotation()
@@ -281,14 +289,6 @@ void ARubicsCube::FinishRotation()
 	if (IsMovingFront)
 	{
 		CurrentCommand->Execute();
-		if (CommandHistory->IsOnHead())
-		{
-			CommandHistory->AddCommand(CurrentCommand.ToSharedRef());
-		}
-		else
-		{
-			CommandHistory->MoveForward();
-		}
 	}
 	else
 	{

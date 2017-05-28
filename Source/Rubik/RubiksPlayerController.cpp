@@ -312,6 +312,7 @@ void ARubiksPlayerController::TryToRotateCubePart(const FVector2D& TouchLocation
 		if (movementLength > 0.0f && movementDelta.Size() > (movementLength * MOVEMENT_SWIPE_TOLERANCE))
 		{
 			MainCube->AddRotation(bestDirection.axis, bestDirection.layerIndex);
+			MainCube->OnMoveDone.Broadcast();
 			RotationCompleted = true;
 		}
 	}

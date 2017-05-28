@@ -65,8 +65,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SaveLoad")
 	void SetHistory(UCommandHistory* NewHistory);
 
+	UFUNCTION(BlueprintCallable, Category = "SaveLoad")
+	void OnHistoryLoaded();
+
 	UPROPERTY(BlueprintReadOnly)
 	bool IsReady;
+
+	UPROPERTY(EditAnywhere, Category = "Parameters")
+	float RotationSpeed;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSimpleMulticastDelegate);
 
@@ -75,6 +81,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FSimpleMulticastDelegate OnAssembled;
+
+	UPROPERTY(BlueprintAssignable)
+	FSimpleMulticastDelegate OnMoveDone;
 
 	UFUNCTION(BlueprintCallable, Category = "Randomize")
 	void MakeRandomMoves(int Count);
@@ -91,8 +100,7 @@ public:
 
 	inline void ScheduleUpdateParts() { IsNeedUpdateParts = true; }
 
-	// returns false if rotation wasn't added
-	bool AddRotation(const RC::RotationAxis& axis, int layerIndex);
+	void AddRotation(const RC::RotationAxis& axis, int layerIndex);
 
 private:
 
@@ -105,8 +113,6 @@ private:
 	TSharedPtr<RC::CubeParts> Parts;
 
 	bool IsNeedUpdateParts;
-
-	float RotationSpeed;
 
 	bool IsMovingFront;
 

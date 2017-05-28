@@ -4,7 +4,7 @@ using UnrealBuildTool;
 
 public class Rubik : ModuleRules
 {
-	public Rubik(TargetInfo Target)
+	public Rubik(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Json" });
 
