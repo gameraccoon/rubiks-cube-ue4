@@ -4,7 +4,7 @@
 #include "CommandHistory.generated.h"
 
 
-UCLASS()
+UCLASS(BlueprintType)
 class UCommandHistory : public UObject
 {
 	GENERATED_BODY()
