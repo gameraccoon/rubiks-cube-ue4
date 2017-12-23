@@ -235,19 +235,51 @@ namespace RC
 		RearrangeControls();
 	}
 
+	inline bool IsBlockHaveValidColors(TArray<int>& InOutSideColors, const int sidesCount, const ARubiksBlock* block)
+	{
+		for (const auto side : block->Sides)
+		{
+			if (const ARubiksSide_Standart* rubiksSide = Cast<ARubiksSide_Standart>(side))
+			{
+				int sideIndex = rubiksSide->GetSideIndex();
+				int colorIndex = rubiksSide->GetColorIndex();
+				if (sideIndex >= 0 && sideIndex < sidesCount) {
+
+					if (InOutSideColors[sideIndex] == -1)
+					{
+						InOutSideColors[sideIndex] = colorIndex;
+					}
+
+					if (InOutSideColors[sideIndex] != colorIndex)
+					{
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+
 	bool CubeParts::IsAssembled()
 	{
+		const int sidesCount = 6;
+		TArray<int> SideColors;
+		SideColors.SetNum(sidesCount);
+		for (int i = 0; i < sidesCount; ++i)
+		{
+			SideColors[i] = -1;
+		}
+
 		for (unsigned int z = 0, zSize = parts.getHeight(); z < zSize; ++z)
 		{
 			for (unsigned int y = 0, ySize = parts.getWidth(); y < ySize; ++y)
 			{
 				for (unsigned int x = 0, xSize = parts.getLength(); x < xSize; ++x)
 				{
-					PartInfo &part = parts[x][y][z];
-					if (part.ptr)
+					if (ARubiksBlock* block = Cast<ARubiksBlock>(parts[x][y][z].ptr))
 					{
-						auto pos = part.ptr->InitialPos;
-						if (pos.x != x || pos.y != y || pos.z != z)
+						bool isColorValid = IsBlockHaveValidColors(SideColors, sidesCount, block);
+						if (!isColorValid)
 						{
 							return false;
 						}
@@ -255,6 +287,7 @@ namespace RC
 				}
 			}
 		}
+
 		return true;
 	}
 
@@ -282,6 +315,7 @@ namespace RC
 		const float sideOffset = initialBlockSize * ((parts.getLength() - 1) * 0.6);
 		
 		TArray<RC::MovementDirection> directions;
+		int sideIndex = -1;
 
 		if (sidePos.X > sideOffset)
 		{
@@ -289,6 +323,7 @@ namespace RC
 			directions.Push(RC::MovementDirection(FVector(0.0f, 0.f, -1.0f), RC::RotationAxis::RY, parts.getWidth() - coord.y - 1));
 			directions.Push(RC::MovementDirection(FVector(0.0f, 1.0f, 0.0f), RC::RotationAxis::FZ, coord.z));
 			directions.Push(RC::MovementDirection(FVector(0.0f, -1.0f, 0.0f), RC::RotationAxis::RZ, parts.getWidth() - coord.z - 1));
+			sideIndex = 0;
 		}
 		else if (sidePos.X < -sideOffset)
 		{
@@ -296,6 +331,7 @@ namespace RC
 			directions.Push(RC::MovementDirection(FVector(0.0f, 0.0f, -1.0f), RC::RotationAxis::FY, coord.y));
 			directions.Push(RC::MovementDirection(FVector(0.0f, 1.0f, 0.0f), RC::RotationAxis::RZ, parts.getWidth() - coord.z - 1));
 			directions.Push(RC::MovementDirection(FVector(0.0f, -1.0f, 0.0f), RC::RotationAxis::FZ, coord.z));
+			sideIndex = 1;
 		}
 		else if (sidePos.Y > sideOffset)
 		{
@@ -303,6 +339,7 @@ namespace RC
 			directions.Push(RC::MovementDirection(FVector(0.0f, 0.0f, -1.0f), RC::RotationAxis::FX, coord.x));
 			directions.Push(RC::MovementDirection(FVector(1.0f, 0.0f, 0.0f), RC::RotationAxis::RZ, parts.getWidth() - coord.z - 1));
 			directions.Push(RC::MovementDirection(FVector(-1.0f, 0.0f, 0.0f), RC::RotationAxis::FZ, coord.z));
+			sideIndex = 2;
 		}
 		else if (sidePos.Y < -sideOffset)
 		{
@@ -310,6 +347,7 @@ namespace RC
 			directions.Push(RC::MovementDirection(FVector(0.0f, 0.0f, -1.0f), RC::RotationAxis::RX, parts.getWidth() - coord.x - 1));
 			directions.Push(RC::MovementDirection(FVector(1.0f, 0.0f, 0.0f), RC::RotationAxis::FZ, coord.z));
 			directions.Push(RC::MovementDirection(FVector(-1.0f, 0.0f, 0.0f), RC::RotationAxis::RZ, parts.getWidth() - coord.z - 1));
+			sideIndex = 3;
 		}
 		else if (sidePos.Z > sideOffset)
 		{
@@ -317,6 +355,7 @@ namespace RC
 			directions.Push(RC::MovementDirection(FVector(0.0f, -1.0f, 0.0f), RC::RotationAxis::RX, parts.getWidth() - coord.x - 1));
 			directions.Push(RC::MovementDirection(FVector(1.0f, 0.0f, 0.0f), RC::RotationAxis::RY, parts.getWidth() - coord.y - 1));
 			directions.Push(RC::MovementDirection(FVector(-1.0f, 0.0f, 0.0f), RC::RotationAxis::FY, coord.y));
+			sideIndex = 4;
 		}
 		else if (sidePos.Z < -sideOffset)
 		{
@@ -324,14 +363,18 @@ namespace RC
 			directions.Push(RC::MovementDirection(FVector(0.0f, -1.0f, 0.0f), RC::RotationAxis::FX, coord.x));
 			directions.Push(RC::MovementDirection(FVector(1.0f, 0.0f, 0.0f), RC::RotationAxis::FY, coord.y));
 			directions.Push(RC::MovementDirection(FVector(-1.0f, 0.0f, 0.0f), RC::RotationAxis::RY, parts.getWidth() - coord.y - 1));
+			sideIndex = 5;
 		}
 		else
 		{
 			UE_LOG(LogicalError, Error, TEXT("Unusual side location"));
 		}
 
-		ARubiksSide_Standart* castedSide = dynamic_cast<ARubiksSide_Standart*>(side);
-		castedSide->SetDirections(directions);
+		if (ARubiksSide_Standart* castedSide = dynamic_cast<ARubiksSide_Standart*>(side))
+		{
+			castedSide->SetDirections(directions);
+			castedSide->SetCurrentSideIndex(sideIndex);
+		}
 	}
 
 	void CubeParts::RearrangePartControls(AActor * part, const Coord& coord)

@@ -42,6 +42,14 @@ public:
 	void SetDirections(const TArray<RC::MovementDirection>& directions);
 	TArray<RC::MovementDirection> GetDirections() const;
 
+	void SetColorIndex(int NewColorIndex) { ColorIndex = NewColorIndex; }
+	int GetColorIndex() const { return ColorIndex; }
+
+	void SetCurrentSideIndex(int NewSideIndex) { SideIndex = NewSideIndex; }
+	int GetSideIndex() const { return SideIndex; }
+
 private:
 	TArray<RC::MovementDirection> Directions;
+	int ColorIndex = -1;
+	int SideIndex = -1;
 };

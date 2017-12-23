@@ -156,10 +156,15 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 
 		if (SideNum >= 0)
 		{
-			AActor * side = world->SpawnActor<ARubiksSide_Standart>(ARubiksSide_Standart::StaticClass());
+			ARubiksSide_Standart* side = world->SpawnActor<ARubiksSide_Standart>(ARubiksSide_Standart::StaticClass());
 			side->AttachToComponent(component, FAttachmentTransformRules(EAttachmentRule(), false), sName);
-			Cast<ARubiksBlock>(actor)->Sides.Push(side);
+			if (ARubiksBlock* block = Cast<ARubiksBlock>(actor))
+			{
+				block->Sides.Push(side);
+			}
 			FVector relativeCoord = (FQuat(this->GetActorRotation()).Inverse()).RotateVector(component->GetSocketLocation(sName) - this->GetActorLocation());
+
+			side->SetColorIndex(SideNum);
 
 			UMaterialInstanceConstant * material = GetSideMaterial(SideNum);
 			Cast<UStaticMeshComponent>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);
