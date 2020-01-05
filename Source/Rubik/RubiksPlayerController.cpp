@@ -51,7 +51,7 @@ bool ARubiksPlayerController::InputKey(FKey Key, EInputEvent EventType, float Am
 	return true;
 }
 
-bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, const FVector2D& TouchLocation, FDateTime DeviceTimestamp, uint32 TouchpadIndex)
+bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, const FVector2D& TouchLocation, float Force, FDateTime DeviceTimestamp, uint32 TouchpadIndex)
 {
 	ThisTouchesMax = 0; // optimization
 
@@ -147,11 +147,11 @@ bool ARubiksPlayerController::InputAxis(FKey Key, float Delta, float DeltaTime, 
 
 		if (IsInputKeyDown(FKey("LeftShift")))
 		{
-			RotateCube(FRotator(0.0f, 0.0f, mouseDelta.X));
+			RotateCube(FRotator(0.0f, 0.0f, mouseDelta.X * RMBSensitivity));
 		}
 		else
 		{
-			RotateCube(FRotator(-mouseDelta.Y, -mouseDelta.X, 0.0f));
+			RotateCube(FRotator(-mouseDelta.Y * RMBSensitivity, -mouseDelta.X * RMBSensitivity, 0.0f));
 		}
 	}
 	else if (IsInputKeyDown(FKey("LeftMouseButton")))
@@ -324,7 +324,6 @@ AActor* ARubiksPlayerController::GetActorUnderPoint(const FVector2D& point) cons
 	DeprojectScreenPositionToWorld(point.X, point.Y, location, direction);
 
 	FCollisionQueryParams TraceParams(FName(TEXT("")), true, this);
-	TraceParams.bTraceAsyncScene = true;
 	TraceParams.bReturnPhysicalMaterial = false;
 	TraceParams.bTraceComplex = false;
 

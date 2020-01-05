@@ -44,7 +44,7 @@ class RUBIK_API ARubiksPlayerController : public APlayerController
 
 public:
 	virtual bool InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad) override;
-	virtual bool InputTouch(uint32 Handle, ETouchType::Type Type, const FVector2D& TouchLocation, FDateTime DeviceTimestamp, uint32 TouchpadIndex) override;
+	virtual bool InputTouch(uint32 Handle, ETouchType::Type Type, const FVector2D& TouchLocation, float Force, FDateTime DeviceTimestamp, uint32 TouchpadIndex) override;
 	virtual bool InputAxis(FKey Key, float Delta, float DeltaTime, int32 NumSamples, bool bGamepad) override;
 	virtual bool InputMotion(const FVector& Tilt, const FVector& RotationRate, const FVector& Gravity, const FVector& Acceleration) override;
 
@@ -88,6 +88,8 @@ private:
 	TArray<RC::ScreenMovementDiraction> CurrentSideDirections;
 	FVector2D MovementTouchStartLocation;
 	bool RotationCompleted = false;
+
+	float RMBSensitivity = 4.0f;
 
 	UPROPERTY()
 	AActor* SwipeStartActor = nullptr;
