@@ -11,13 +11,6 @@
 // Sets default values
 ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 	: Super(OI)
-	, GridSize(3)
-	, InitialBlockSize(23.0f)
-	, InitialSize(80.0f)
-	, Type("Standart")
-	, IsNeedUpdateParts(false)
-	, RotationSpeed(10.0f)
-	, IsReady(false)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -196,6 +189,11 @@ void ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
 	}
 }
 
+bool ARubicsCube::CanUndoRotation() const
+{
+	return !CommandHistory->IsOnTail();
+}
+
 void ARubicsCube::UndoRotation()
 {
 	FinishRotation();
@@ -208,6 +206,11 @@ void ARubicsCube::UndoRotation()
 		CommandHistory->MoveBackward();
 	}
 	OnMoveDone.Broadcast();
+}
+
+bool ARubicsCube::CanRedoRotation() const
+{
+	return !CommandHistory->IsOnHead();
 }
 
 void ARubicsCube::RedoRotation()

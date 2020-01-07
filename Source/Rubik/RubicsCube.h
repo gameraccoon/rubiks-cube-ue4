@@ -21,19 +21,19 @@ public:
 
 	/** size in elements */
 	UPROPERTY(EditAnywhere, Category = "Parameters", meta = (ClampMin = "2", ClampMax = "5", UIMin = "2", UIMax = "5"))
-	uint8 GridSize;
+	uint8 GridSize = 3;
 
 	/** whole cube size in units */
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-	float InitialSize;
+	float InitialSize = 80.0f;
 
 	/** single block size in units */
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-	float InitialBlockSize;
+	float InitialBlockSize = 23.0f;
 
-	/** cubic's type */
+	/** cube's type */
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-	FName Type;
+	FName Type = TEXT("Standart");
 
 	UPROPERTY(EditAnywhere, Category = "Colors")
 	UMaterialInstanceConstant * SideColor1;
@@ -54,7 +54,13 @@ public:
 	UMaterialInstanceConstant * SideColor6;
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
+	bool CanUndoRotation() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Actions")
 	void UndoRotation();
+
+	UFUNCTION(BlueprintCallable, Category = "Actions")
+	bool CanRedoRotation() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
 	void RedoRotation();
@@ -69,10 +75,10 @@ public:
 	void OnHistoryLoaded();
 
 	UPROPERTY(BlueprintReadOnly)
-	bool IsReady;
+	bool IsReady = false;
 
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-	float RotationSpeed;
+	float RotationSpeed = 10.0f;
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSimpleMulticastDelegate);
 
@@ -105,16 +111,15 @@ public:
 private:
 
 	UPROPERTY()
-	UCommandHistory* CommandHistory;
+	UCommandHistory* CommandHistory = nullptr;
 
 	Command::Ptr CurrentCommand;
-	float CommandProgress;
+	float CommandProgress = 0.0f;
 
 	TSharedPtr<RC::CubeParts> Parts;
 
-	bool IsNeedUpdateParts;
-
-	bool IsMovingFront;
+	bool IsNeedUpdateParts = false;
+	bool IsMovingFront = true;
 
 private:
 	void InitCube();
