@@ -93,27 +93,6 @@ void ARubicsCube::InitCube()
 	}
 }
 
-UMaterialInstanceConstant * ARubicsCube::GetSideMaterial(int sideNum)
-{
-	switch (sideNum) {
-	case 0:
-		return SideColor1;
-	case 1:
-		return SideColor2;
-	case 2:
-		return SideColor3;
-	case 3:
-		return SideColor4;
-	case 4:
-		return SideColor5;
-	case 5:
-		return SideColor6;
-	default:
-		UE_LOG(LogicalError, Error, TEXT("Wrong side number"));
-		return SideColor1;
-	}
-}
-
 void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, const Coord& coord)
 {
 	UStaticMeshComponent* component = Cast<UStaticMeshComponent>(actor->GetComponentByClass(UStaticMeshComponent::StaticClass()));
@@ -122,11 +101,11 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 	{
 		int SideNum = -1;
 
-		if (sName == "Side1" && coord.z == GridSize - 1)
+		if (sName == "Side1" && coord.z == 0)
 		{
 			SideNum = 0;
 		}
-		else if (sName == "Side2" && coord.x == GridSize - 1)
+		else if (sName == "Side2" && coord.z == GridSize - 1)
 		{
 			SideNum = 1;
 		}
@@ -134,7 +113,7 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 		{
 			SideNum = 2;
 		}
-		else if (sName == "Side4" && coord.z == 0)
+		else if (sName == "Side4" && coord.y == GridSize - 1)
 		{
 			SideNum = 3;
 		}
@@ -142,7 +121,7 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 		{
 			SideNum = 4;
 		}
-		else if (sName == "Side6" && coord.y == GridSize - 1)
+		else if (sName == "Side6" && coord.x == GridSize - 1)
 		{
 			SideNum = 5;
 		}
@@ -159,8 +138,15 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 
 			side->SetColorIndex(SideNum);
 
-			UMaterialInstanceConstant * material = GetSideMaterial(SideNum);
-			Cast<UStaticMeshComponent>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);
+			if (SideColors.IsValidIndex(SideNum))
+			{
+				UMaterialInstance* material = SideColors[SideNum];
+				Cast<UStaticMeshComponent>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);
+			}
+			else
+			{
+				UE_LOG(LogicalError, Error, TEXT("Wrong side number"));
+			}
 		}
 	}
 }

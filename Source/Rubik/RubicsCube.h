@@ -32,26 +32,11 @@ public:
 	float InitialBlockSize = 23.0f;
 
 	/** cube's type */
-	UPROPERTY(EditAnywhere, Category = "Parameters")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Parameters")
 	FName Type = TEXT("Standart");
 
-	UPROPERTY(EditAnywhere, Category = "Colors")
-	UMaterialInstanceConstant * SideColor1;
-
-	UPROPERTY(EditAnywhere, Category = "Colors")
-	UMaterialInstanceConstant * SideColor2;
-
-	UPROPERTY(EditAnywhere, Category = "Colors")
-	UMaterialInstanceConstant * SideColor3;
-
-	UPROPERTY(EditAnywhere, Category = "Colors")
-	UMaterialInstanceConstant * SideColor4;
-
-	UPROPERTY(EditAnywhere, Category = "Colors")
-	UMaterialInstanceConstant * SideColor5;
-
-	UPROPERTY(EditAnywhere, Category = "Colors")
-	UMaterialInstanceConstant * SideColor6;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Colors")
+	TArray<UMaterialInstance*> SideColors;
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
 	bool CanUndoRotation() const;
@@ -125,7 +110,6 @@ private:
 	void InitCube();
 	void InitCubePart(UWorld * const world, const Coord& coord);
 
-	UMaterialInstanceConstant * GetSideMaterial(int sideNum);
 	void AttachSidesToSockets(UWorld * const world, AActor * actor, const Coord& coord);
 
 	void UpdateParts();
