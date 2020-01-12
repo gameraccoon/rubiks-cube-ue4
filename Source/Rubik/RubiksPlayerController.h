@@ -8,7 +8,6 @@
 #include "RubiksPlayerController.generated.h"
 
 class ARubicsCube;
-class ARubiksPlayerPawn;
 
 namespace RC
 {
@@ -52,17 +51,16 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ProcessTap(AActor* tappedActor);
 
-	UFUNCTION(BlueprintCallable, Category = "Getters")
+	UFUNCTION(BlueprintCallable, Category = "Cube")
 	ARubicsCube* GetCube();
 
-private:
-	void RotateCube(const FRotator& rotation);
-	void SetCameraRotation(const FRotator& rotation);
-	void FindPlayerPawn();
+	UFUNCTION(BlueprintCallable, Category = "Cube")
+	void SetCube(ARubicsCube* NewCube);
 
-	void CheckAllComponents();
-	void TryToAttachCubeToPawn();
-	bool IsAllComponentsReady() const;
+private:
+	bool IsCubeReady() const;
+
+	void RotateCube(const FRotator& rotation);
 
 	bool ActorIsCube(const AActor* actor) const;
 
@@ -72,12 +70,10 @@ private:
 	AActor* GetActorUnderPoint(const FVector2D& point) const;
 
 private:
-	/// Cube that we control at this time
+	/// Cube that we control at the moment
 	UPROPERTY()
-	ARubicsCube* MainCube;
+	ARubicsCube* MainCube = nullptr;
 
-	UPROPERTY()
-	ARubiksPlayerPawn* PlayerPawn;
 	Utils::MultitouchHelper Multitouch;
 
 	// for optimization

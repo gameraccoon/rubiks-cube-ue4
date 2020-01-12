@@ -9,8 +9,6 @@ namespace RC
 		: Parts(length, width, height, PartInfo())
 		, InitialBlockSize(_initialBlockSize)
 		, CenterShift(_centerShift)
-		, MainLocation(0.0f, 0.0f, 0.0f)
-		, MainRotation(FRotator(0.0f, 0.0f, 0.0f))
 	{
 	}
 

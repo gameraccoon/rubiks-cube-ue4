@@ -21,24 +21,6 @@ ARubicsCube::ARubicsCube(const class FObjectInitializer& OI)
 void ARubicsCube::BeginPlay()
 {
 	Super::BeginPlay();
-
-	Parts = TSharedPtr<RC::CubeParts>(new RC::CubeParts(GridSize, GridSize, GridSize, InitialBlockSize, -FVector(1.0f, 1.0f, 1.0f) * 0.5 * InitialBlockSize * (GridSize - 1)));
-
-	Parts->SetMainLocation(this->GetActorLocation());
-	Parts->SetMainRotation(FQuat(this->GetActorRotation()));
-
-	InitCube();
-
-	CommandHistory = NewObject<UCommandHistory>();
-	CommandHistory->SetReceiver(this);
-
-	CommandProgress = 0.0f;
-
-	CommandHistory->MarkInited();
-
-	IsReady = true;
-
-	OnReady.Broadcast();
 }
 
 // Called every frame
@@ -64,7 +46,7 @@ void ARubicsCube::Tick( float DeltaTime )
 
 void ARubicsCube::UpdateParts()
 {
-	if (IsNeedUpdateParts)
+	if (IsNeedUpdateParts && Parts)
 	{
 		Parts->SetMainLocation(this->GetActorLocation());
 		Parts->SetMainRotation(FQuat(this->GetActorRotation()));
@@ -73,8 +55,15 @@ void ARubicsCube::UpdateParts()
 	}
 }
 
-void ARubicsCube::InitCube()
+void ARubicsCube::InitCube(uint8 InGridSize)
 {
+	GridSize = InGridSize;
+
+	Parts = TSharedPtr<RC::CubeParts>(new RC::CubeParts(GridSize, GridSize, GridSize, BlockSize, -FVector(1.0f, 1.0f, 1.0f) * 0.5 * BlockSize * (GridSize - 1)));
+
+	Parts->SetMainLocation(this->GetActorLocation());
+	Parts->SetMainRotation(FQuat(this->GetActorRotation()));
+
 	UWorld* const world = GetWorld();
 	if (!world)
 	{
@@ -91,6 +80,39 @@ void ARubicsCube::InitCube()
 			}
 		}
 	}
+
+	CommandHistory = NewObject<UCommandHistory>();
+	CommandHistory->SetReceiver(this);
+
+	CommandProgress = 0.0f;
+
+	CommandHistory->MarkInited();
+
+	IsReady = true;
+
+	OnReady.Broadcast();
+}
+
+void ARubicsCube::ClearCube()
+{
+	if (Parts)
+	{
+		Parts->ForEachPart([](ARubikPart* part)
+		{
+			if (ARubiksBlock_Standart* standartPart = Cast<ARubiksBlock_Standart>(part))
+			{
+				for (AActor* side : standartPart->Sides)
+				{
+					side->Destroy();
+				}
+			}
+			part->Destroy();
+		});
+	}
+	Parts = nullptr;
+	CommandHistory->ConditionalBeginDestroy();
+	CommandHistory = nullptr;
+	CurrentCommand = nullptr;
 }
 
 void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, const Coord& coord)
@@ -178,23 +200,26 @@ void ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
 
 void ARubicsCube::UpdateSideMaterials()
 {
-	Parts->ForEachPart([this](Coord /*coord*/, ARubikPart* part)
+	if (Parts)
 	{
-		ARubiksBlock_Standart* partActor = Cast<ARubiksBlock_Standart>(part);
-		if (partActor == nullptr)
+		Parts->ForEachPart([this](ARubikPart* part)
 		{
-			return;
-		}
-
-		for (auto side : partActor->Sides)
-		{
-			if (ARubiksSide_Standart* sideStandart = Cast<ARubiksSide_Standart>(side))
+			ARubiksBlock_Standart* partActor = Cast<ARubiksBlock_Standart>(part);
+			if (partActor == nullptr)
 			{
-				UMaterialInstance* material = SideColors[sideStandart->GetInitialSideIndex()];
-				Cast<UStaticMeshComponent>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);
+				return;
 			}
-		}
-	});
+
+			for (auto side : partActor->Sides)
+			{
+				if (ARubiksSide_Standart* sideStandart = Cast<ARubiksSide_Standart>(side))
+				{
+					UMaterialInstance* material = SideColors[sideStandart->GetInitialSideIndex()];
+					Cast<UStaticMeshComponent>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);
+				}
+			}
+		});
+	}
 }
 
 bool ARubicsCube::CanUndoRotation() const
@@ -328,7 +353,7 @@ void ARubicsCube::FinishRotation()
 	CurrentCommand = nullptr;
 	CommandProgress = 0.0f;
 
-	if (Parts->IsAssembled())
+	if (Parts && Parts->IsAssembled())
 	{
 		OnAssembled.Broadcast();
 	}

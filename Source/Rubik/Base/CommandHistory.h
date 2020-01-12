@@ -64,9 +64,9 @@ public:
 	void UnexecuteAll();
 
 private:
-	AActor* Reciever;
+	AActor* Reciever = nullptr;
 	TArray<Command::Ptr> Commands;
-	int Current;
-	int FirstChangableCommand;
-	bool IsInited;
+	int Current = 0;
+	int FirstChangableCommand = 0;
+	bool IsInited = false;
 };

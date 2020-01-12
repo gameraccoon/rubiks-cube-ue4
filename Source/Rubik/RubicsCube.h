@@ -20,16 +20,12 @@ class RUBIK_API ARubicsCube
 public:
 
 	/** size in elements */
-	UPROPERTY(EditAnywhere, Category = "Parameters", meta = (ClampMin = "2", ClampMax = "5", UIMin = "2", UIMax = "5"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Parameters", meta = (ClampMin = "2", ClampMax = "5", UIMin = "2", UIMax = "5"))
 	uint8 GridSize = 3;
-
-	/** whole cube size in units */
-	UPROPERTY(EditAnywhere, Category = "Parameters")
-	float InitialSize = 80.0f;
 
 	/** single block size in units */
 	UPROPERTY(EditAnywhere, Category = "Parameters")
-	float InitialBlockSize = 23.0f;
+	float BlockSize = 23.0f;
 
 	/** cube's type */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Parameters")
@@ -37,6 +33,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Colors")
 	TArray<UMaterialInstance*> SideColors;
+
+	UFUNCTION(BlueprintCallable)
+	void InitCube(uint8 InGridSize);
+
+	UFUNCTION(BlueprintCallable)
+	void ClearCube();
 
 	UFUNCTION(BlueprintCallable, Category = "Colors")
 	void UpdateSideMaterials();
@@ -110,7 +112,6 @@ private:
 	bool IsMovingFront = true;
 
 private:
-	void InitCube();
 	void InitCubePart(UWorld * const world, const Coord& coord);
 
 	void AttachSidesToSockets(UWorld * const world, AActor * actor, const Coord& coord);

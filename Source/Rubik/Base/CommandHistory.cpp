@@ -4,10 +4,6 @@
 
 
 UCommandHistory::UCommandHistory()
-	: Current(0)
-	, Reciever(nullptr)
-	, FirstChangableCommand(0)
-	, IsInited(false)
 {
 }
 

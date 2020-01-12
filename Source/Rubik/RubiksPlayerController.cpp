@@ -3,7 +3,6 @@
 #include "Rubik.h"
 #include "RubiksPlayerController.h"
 #include "RubicsCube.h"
-#include "RubiksPlayerPawn.h"
 #include "RubiksSide_Standart.h"
 #include "RubikPart.h"
 
@@ -11,25 +10,6 @@ static const float MOVEMENT_SWIPE_TOLERANCE = 10.0f;
 
 bool ARubiksPlayerController::InputKey(FKey Key, EInputEvent EventType, float AmountDepressed, bool bGamepad)
 {
-	if (Key == FKey("MouseScrollUp"))
-	{
-		CheckAllComponents();
-
-		if (IsAllComponentsReady())
-		{
-			PlayerPawn->CameraOffset /= 1.1;
-		}
-	}
-	else if (Key == FKey("MouseScrollDown"))
-	{
-		CheckAllComponents();
-
-		if (IsAllComponentsReady())
-		{
-			PlayerPawn->CameraOffset *= 1.1;
-		}
-	}
-
 	if (Key == FKey("LeftMouseButton") && EventType == EInputEvent::IE_Pressed)
 	{
 		FVector2D mousePos;
@@ -176,21 +156,22 @@ bool ARubiksPlayerController::InputAxis(FKey Key, float Delta, float DeltaTime, 
 
 bool ARubiksPlayerController::InputMotion(const FVector& Tilt, const FVector& RotationRate, const FVector& Gravity, const FVector& Acceleration)
 {
-	//SetCameraRotation(Gravity.Rotation());
 	return true;
 }
 
 ARubicsCube * ARubiksPlayerController::GetCube()
 {
-	CheckAllComponents();
 	return MainCube;
+}
+
+void ARubiksPlayerController::SetCube(ARubicsCube* NewCube)
+{
+	MainCube = NewCube;
 }
 
 void ARubiksPlayerController::RotateCube(const FRotator& rotation)
 {
-	CheckAllComponents();
-
-	if (IsAllComponentsReady())
+	if (IsCubeReady())
 	{
 		FQuat fullRotation = FQuat(rotation) * FQuat(MainCube->GetActorRotation());
 		FQuat partialRotation = FQuat::FastLerp(MainCube->GetActorRotation().Quaternion(), fullRotation, 0.3);
@@ -199,54 +180,9 @@ void ARubiksPlayerController::RotateCube(const FRotator& rotation)
 	}
 }
 
-void ARubiksPlayerController::SetCameraRotation(const FRotator& rotation)
+bool ARubiksPlayerController::IsCubeReady() const
 {
-	CheckAllComponents();
-
-	if (IsAllComponentsReady())
-	{
-		PlayerPawn->CameraYaw = rotation.Yaw;
-		PlayerPawn->CameraPitch = -rotation.Pitch;
-		PlayerPawn->CameraRoll = rotation.Roll;
-	}
-}
-
-void ARubiksPlayerController::FindPlayerPawn()
-{
-	PlayerPawn = dynamic_cast<ARubiksPlayerPawn*>(GetPawn());
-
-	TryToAttachCubeToPawn();
-}
-
-void ARubiksPlayerController::CheckAllComponents()
-{
-	if (!PlayerPawn || !PlayerPawn->IsValidLowLevel())
-	{
-		FindPlayerPawn();
-	}
-
-	if (PlayerPawn && PlayerPawn->IsValidLowLevel() && !MainCube)
-	{
-		if (!PlayerPawn->Cube)
-		{
-			PlayerPawn->FindCube();
-		}
-
-		MainCube = PlayerPawn->Cube;
-	}
-}
-
-void ARubiksPlayerController::TryToAttachCubeToPawn()
-{
-	if (MainCube && MainCube->IsValidLowLevel() && PlayerPawn && PlayerPawn->IsValidLowLevel())
-	{
-		PlayerPawn->Cube = MainCube;
-	}
-}
-
-bool ARubiksPlayerController::IsAllComponentsReady() const
-{
-	return MainCube && MainCube->IsValidLowLevel() && PlayerPawn && PlayerPawn->IsValidLowLevel();
+	return MainCube && MainCube->IsValidLowLevel();
 }
 
 bool ARubiksPlayerController::ActorIsCube(const AActor* Actor) const
@@ -265,12 +201,10 @@ void ARubiksPlayerController::StartRotateCubePart(AActor* CubePart, const FVecto
 {
 	if (CubePart && CubePart->IsValidLowLevel() && CubePart->IsA(ARubiksSide_Standart::StaticClass()))
 	{
-		CheckAllComponents();
-
 		FVector2D ActorScreenPos;
 		ProjectWorldLocationToScreen(CubePart->GetActorLocation(), ActorScreenPos);
 
-		if (MainCube)
+		if (IsCubeReady())
 		{
 			CurrentSideDirections.Empty();
 			TArray<RC::MovementDirection> Directions = dynamic_cast<ARubiksSide_Standart*>(CubePart)->GetDirections();
@@ -289,7 +223,7 @@ void ARubiksPlayerController::StartRotateCubePart(AActor* CubePart, const FVecto
 
 void ARubiksPlayerController::TryToRotateCubePart(const FVector2D& TouchLocation)
 {
-	if (MainCube && !RotationCompleted)
+	if (IsCubeReady() && !RotationCompleted)
 	{
 		float minimalAngle = 1000.0f;
 		RC::ScreenMovementDiraction bestDirection;

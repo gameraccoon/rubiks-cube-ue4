@@ -32,7 +32,7 @@ namespace RC
 				{
 					for (unsigned int x = 0, xSize = Parts.getLength(); x < xSize; ++x)
 					{
-						functor(Coord(x, y, z), Parts[x][y][z].ptr);
+						functor(Parts[x][y][z].ptr);
 					}
 				}
 			}
@@ -43,16 +43,14 @@ namespace RC
 
 		struct PartInfo
 		{
-			PartPtr ptr;
-			FQuat baseRotation;
-			FVector baseLocation;
+			PartPtr ptr{ nullptr };
+			FQuat baseRotation{ EForceInit::ForceInitToZero };
+			FVector baseLocation{ FVector::ZeroVector };
 
-			FQuat localRotation;
-			FVector localLocation;
+			FQuat localRotation{ EForceInit::ForceInitToZero };
+			FVector localLocation{ FVector::ZeroVector };
 
 			Coord originalCoord;
-
-			PartInfo() : ptr(nullptr) {}
 		};
 
 		typedef Matrix<PartInfo*> Slice;
@@ -70,10 +68,10 @@ namespace RC
 
 	private:
 		Array3D<PartInfo> Parts;
-		float InitialBlockSize;
+		float InitialBlockSize = 0.0f;
 		FVector CenterShift;
 
-		FVector MainLocation;
-		FQuat MainRotation;
+		FVector MainLocation{ FVector::ZeroVector };
+		FQuat MainRotation{ EForceInit::ForceInitToZero };
 	};
 } // namespace RC
