@@ -6,17 +6,17 @@
 namespace RC
 {
 	CubeParts::CubeParts(int length, int width, int height, float _initialBlockSize, FVector _centerShift)
-		: parts(length, width, height, PartInfo())
-		, initialBlockSize(_initialBlockSize)
-		, centerShift(_centerShift)
-		, mainLocation(0.0f, 0.0f, 0.0f)
-		, mainRotation(FRotator(0.0f, 0.0f, 0.0f))
+		: Parts(length, width, height, PartInfo())
+		, InitialBlockSize(_initialBlockSize)
+		, CenterShift(_centerShift)
+		, MainLocation(0.0f, 0.0f, 0.0f)
+		, MainRotation(FRotator(0.0f, 0.0f, 0.0f))
 	{
 	}
 
 	void CubeParts::InsertPart(ARubikPart* part, Coord pos)
 	{
-		PartInfo& partInfo = parts[pos.x][pos.y][pos.z];
+		PartInfo& partInfo = Parts[pos.x][pos.y][pos.z];
 
 		if (partInfo.ptr)
 		{
@@ -29,15 +29,15 @@ namespace RC
 			return;
 		}
 
-		FVector location(FVector(pos.x, pos.y, pos.z) * initialBlockSize);
+		FVector location(FVector(pos.x, pos.y, pos.z) * InitialBlockSize);
 		FQuat roataion(GetPartInitialRotation(pos));
 
-		part->SetActorLocation(mainLocation + mainRotation.RotateVector(location + centerShift));
-		part->SetActorRotation((mainRotation * roataion).Rotator());
+		part->SetActorLocation(MainLocation + MainRotation.RotateVector(location + CenterShift));
+		part->SetActorRotation((MainRotation * roataion).Rotator());
 		part->InitialPos = pos;
 
 		partInfo.ptr = part;
-		partInfo.localLocation = location + centerShift;
+		partInfo.localLocation = location + CenterShift;
 		partInfo.localRotation = roataion;
 		partInfo.baseLocation = partInfo.localLocation;
 		partInfo.baseRotation = partInfo.localRotation;
@@ -145,13 +145,13 @@ namespace RC
 		part->localLocation = rotationQuat.RotateVector(part->baseLocation);
 		part->localRotation = rotationQuat * part->baseRotation;
 
-		part->ptr->SetActorLocation(mainLocation + mainRotation.RotateVector(part->localLocation));
-		part->ptr->SetActorRotation((mainRotation * part->localRotation).Rotator());
+		part->ptr->SetActorLocation(MainLocation + MainRotation.RotateVector(part->localLocation));
+		part->ptr->SetActorRotation((MainRotation * part->localRotation).Rotator());
 	}
 
 	CubeParts::Slice CubeParts::GetSlice(RotationAxis axis, int pos)
 	{
-		Slice slice(parts.getLength(), parts.getLength(), nullptr);
+		Slice slice(Parts.getLength(), Parts.getLength(), nullptr);
 
 		const bool isXMove = axis.IsX();
 		const bool isYMove = axis.IsY();
@@ -159,7 +159,7 @@ namespace RC
 
 		const bool isReversed = !axis.IsFrontal();
 
-		const int slicePos = isReversed ? parts.getWidth() - pos - 1 : pos;
+		const int slicePos = isReversed ? Parts.getWidth() - pos - 1 : pos;
 
 		if ((isXMove && isYMove) || (isYMove && isZMove) || (isXMove && isZMove))
 		{
@@ -171,11 +171,11 @@ namespace RC
 		{
 			const int x = slicePos;
 
-			for (unsigned int y = 0, ySize = parts.getWidth(); y < ySize; ++y)
+			for (unsigned int y = 0, ySize = Parts.getWidth(); y < ySize; ++y)
 			{
-				for (unsigned int z = 0, zSize = parts.getHeight(); z < zSize; ++z)
+				for (unsigned int z = 0, zSize = Parts.getHeight(); z < zSize; ++z)
 				{
-					slice[z][y] = &parts[x][y][z];
+					slice[z][y] = &Parts[x][y][z];
 				}
 			}
 		}
@@ -183,11 +183,11 @@ namespace RC
 		{
 			const int y = slicePos;
 
-			for (unsigned int x = 0, xSize = parts.getLength(); x < xSize; ++x)
+			for (unsigned int x = 0, xSize = Parts.getLength(); x < xSize; ++x)
 			{
-				for (unsigned int z = 0, zSize = parts.getHeight(); z < zSize; ++z)
+				for (unsigned int z = 0, zSize = Parts.getHeight(); z < zSize; ++z)
 				{
-					slice[x][z] = &parts[x][y][z];
+					slice[x][z] = &Parts[x][y][z];
 				}
 			}
 		}
@@ -195,11 +195,11 @@ namespace RC
 		{
 			const int z = slicePos;
 
-			for (unsigned int y = 0, ySize = parts.getWidth(); y < ySize; ++y)
+			for (unsigned int y = 0, ySize = Parts.getWidth(); y < ySize; ++y)
 			{
-				for (unsigned int x = 0, xSize = parts.getLength(); x < xSize; ++x)
+				for (unsigned int x = 0, xSize = Parts.getLength(); x < xSize; ++x)
 				{
-					slice[x][y] = &parts[x][y][z];
+					slice[x][y] = &Parts[x][y][z];
 				}
 			}
 		}
@@ -213,20 +213,20 @@ namespace RC
 
 	void CubeParts::UpdateAllParts()
 	{
-		for (unsigned int z = 0, zSize = parts.getHeight(); z < zSize; ++z)
+		for (unsigned int z = 0, zSize = Parts.getHeight(); z < zSize; ++z)
 		{
-			for (unsigned int y = 0, ySize = parts.getWidth(); y < ySize; ++y)
+			for (unsigned int y = 0, ySize = Parts.getWidth(); y < ySize; ++y)
 			{
-				for (unsigned int x = 0, xSize = parts.getLength(); x < xSize; ++x)
+				for (unsigned int x = 0, xSize = Parts.getLength(); x < xSize; ++x)
 				{
-					PartInfo &part = parts[x][y][z];
+					PartInfo &part = Parts[x][y][z];
 					if (part.ptr)
 					{
 						part.localLocation = part.baseLocation;
 						part.localRotation = part.baseRotation;
 
-						part.ptr->SetActorLocation(mainLocation + mainRotation.RotateVector(part.localLocation));
-						part.ptr->SetActorRotation((mainRotation * part.localRotation).Rotator());
+						part.ptr->SetActorLocation(MainLocation + MainRotation.RotateVector(part.localLocation));
+						part.ptr->SetActorRotation((MainRotation * part.localRotation).Rotator());
 					}
 				}
 			}
@@ -270,13 +270,13 @@ namespace RC
 			SideColors[i] = -1;
 		}
 
-		for (unsigned int z = 0, zSize = parts.getHeight(); z < zSize; ++z)
+		for (unsigned int z = 0, zSize = Parts.getHeight(); z < zSize; ++z)
 		{
-			for (unsigned int y = 0, ySize = parts.getWidth(); y < ySize; ++y)
+			for (unsigned int y = 0, ySize = Parts.getWidth(); y < ySize; ++y)
 			{
-				for (unsigned int x = 0, xSize = parts.getLength(); x < xSize; ++x)
+				for (unsigned int x = 0, xSize = Parts.getLength(); x < xSize; ++x)
 				{
-					if (ARubiksBlock* block = Cast<ARubiksBlock>(parts[x][y][z].ptr))
+					if (ARubiksBlock* block = Cast<ARubiksBlock>(Parts[x][y][z].ptr))
 					{
 						bool isColorValid = IsBlockHaveValidColors(SideColors, sidesCount, block);
 						if (!isColorValid)
@@ -293,13 +293,13 @@ namespace RC
 
 	void CubeParts::RearrangeControls()
 	{
-		for (unsigned int z = 0, zSize = parts.getHeight(); z < zSize; ++z)
+		for (unsigned int z = 0, zSize = Parts.getHeight(); z < zSize; ++z)
 		{
-			for (unsigned int y = 0, ySize = parts.getWidth(); y < ySize; ++y)
+			for (unsigned int y = 0, ySize = Parts.getWidth(); y < ySize; ++y)
 			{
-				for (unsigned int x = 0, xSize = parts.getLength(); x < xSize; ++x)
+				for (unsigned int x = 0, xSize = Parts.getLength(); x < xSize; ++x)
 				{
-					PartInfo &part = parts[x][y][z];
+					PartInfo &part = Parts[x][y][z];
 					if (part.ptr)
 					{
 						RearrangePartControls(part.ptr, Coord(x, y, z));
@@ -311,8 +311,8 @@ namespace RC
 
 	void CubeParts::RearrangeSideControls(AActor * side, const Coord& coord)
 	{
-		const FVector sidePos = (mainRotation.Inverse()).RotateVector(side->GetActorLocation() - mainLocation);
-		const float sideOffset = initialBlockSize * ((parts.getLength() - 1) * 0.6);
+		const FVector sidePos = (MainRotation.Inverse()).RotateVector(side->GetActorLocation() - MainLocation);
+		const float sideOffset = InitialBlockSize * ((Parts.getLength() - 1) * 0.6);
 		
 		TArray<RC::MovementDirection> directions;
 		int sideIndex = -1;
@@ -320,49 +320,49 @@ namespace RC
 		if (sidePos.X > sideOffset)
 		{
 			directions.Push(RC::MovementDirection(FVector(0.0f, 0.0f, 1.0f), RC::RotationAxis::FY, coord.y));
-			directions.Push(RC::MovementDirection(FVector(0.0f, 0.f, -1.0f), RC::RotationAxis::RY, parts.getWidth() - coord.y - 1));
+			directions.Push(RC::MovementDirection(FVector(0.0f, 0.f, -1.0f), RC::RotationAxis::RY, Parts.getWidth() - coord.y - 1));
 			directions.Push(RC::MovementDirection(FVector(0.0f, 1.0f, 0.0f), RC::RotationAxis::FZ, coord.z));
-			directions.Push(RC::MovementDirection(FVector(0.0f, -1.0f, 0.0f), RC::RotationAxis::RZ, parts.getWidth() - coord.z - 1));
+			directions.Push(RC::MovementDirection(FVector(0.0f, -1.0f, 0.0f), RC::RotationAxis::RZ, Parts.getWidth() - coord.z - 1));
 			sideIndex = 0;
 		}
 		else if (sidePos.X < -sideOffset)
 		{
-			directions.Push(RC::MovementDirection(FVector(0.0f, 0.f, 1.0f), RC::RotationAxis::RY, parts.getWidth() - coord.y - 1));
+			directions.Push(RC::MovementDirection(FVector(0.0f, 0.f, 1.0f), RC::RotationAxis::RY, Parts.getWidth() - coord.y - 1));
 			directions.Push(RC::MovementDirection(FVector(0.0f, 0.0f, -1.0f), RC::RotationAxis::FY, coord.y));
-			directions.Push(RC::MovementDirection(FVector(0.0f, 1.0f, 0.0f), RC::RotationAxis::RZ, parts.getWidth() - coord.z - 1));
+			directions.Push(RC::MovementDirection(FVector(0.0f, 1.0f, 0.0f), RC::RotationAxis::RZ, Parts.getWidth() - coord.z - 1));
 			directions.Push(RC::MovementDirection(FVector(0.0f, -1.0f, 0.0f), RC::RotationAxis::FZ, coord.z));
 			sideIndex = 1;
 		}
 		else if (sidePos.Y > sideOffset)
 		{
-			directions.Push(RC::MovementDirection(FVector(0.0f, 0.0f, 1.0f), RC::RotationAxis::RX, parts.getWidth() - coord.x - 1));
+			directions.Push(RC::MovementDirection(FVector(0.0f, 0.0f, 1.0f), RC::RotationAxis::RX, Parts.getWidth() - coord.x - 1));
 			directions.Push(RC::MovementDirection(FVector(0.0f, 0.0f, -1.0f), RC::RotationAxis::FX, coord.x));
-			directions.Push(RC::MovementDirection(FVector(1.0f, 0.0f, 0.0f), RC::RotationAxis::RZ, parts.getWidth() - coord.z - 1));
+			directions.Push(RC::MovementDirection(FVector(1.0f, 0.0f, 0.0f), RC::RotationAxis::RZ, Parts.getWidth() - coord.z - 1));
 			directions.Push(RC::MovementDirection(FVector(-1.0f, 0.0f, 0.0f), RC::RotationAxis::FZ, coord.z));
 			sideIndex = 2;
 		}
 		else if (sidePos.Y < -sideOffset)
 		{
 			directions.Push(RC::MovementDirection(FVector(0.0f, 0.0f, 1.0f), RC::RotationAxis::FX, coord.x));
-			directions.Push(RC::MovementDirection(FVector(0.0f, 0.0f, -1.0f), RC::RotationAxis::RX, parts.getWidth() - coord.x - 1));
+			directions.Push(RC::MovementDirection(FVector(0.0f, 0.0f, -1.0f), RC::RotationAxis::RX, Parts.getWidth() - coord.x - 1));
 			directions.Push(RC::MovementDirection(FVector(1.0f, 0.0f, 0.0f), RC::RotationAxis::FZ, coord.z));
-			directions.Push(RC::MovementDirection(FVector(-1.0f, 0.0f, 0.0f), RC::RotationAxis::RZ, parts.getWidth() - coord.z - 1));
+			directions.Push(RC::MovementDirection(FVector(-1.0f, 0.0f, 0.0f), RC::RotationAxis::RZ, Parts.getWidth() - coord.z - 1));
 			sideIndex = 3;
 		}
 		else if (sidePos.Z > sideOffset)
 		{
 			directions.Push(RC::MovementDirection(FVector(0.0f, 1.0f, 0.0f), RC::RotationAxis::FX, coord.x));
-			directions.Push(RC::MovementDirection(FVector(0.0f, -1.0f, 0.0f), RC::RotationAxis::RX, parts.getWidth() - coord.x - 1));
-			directions.Push(RC::MovementDirection(FVector(1.0f, 0.0f, 0.0f), RC::RotationAxis::RY, parts.getWidth() - coord.y - 1));
+			directions.Push(RC::MovementDirection(FVector(0.0f, -1.0f, 0.0f), RC::RotationAxis::RX, Parts.getWidth() - coord.x - 1));
+			directions.Push(RC::MovementDirection(FVector(1.0f, 0.0f, 0.0f), RC::RotationAxis::RY, Parts.getWidth() - coord.y - 1));
 			directions.Push(RC::MovementDirection(FVector(-1.0f, 0.0f, 0.0f), RC::RotationAxis::FY, coord.y));
 			sideIndex = 4;
 		}
 		else if (sidePos.Z < -sideOffset)
 		{
-			directions.Push(RC::MovementDirection(FVector(0.0f, 1.0f, 0.0f), RC::RotationAxis::RX, parts.getWidth() - coord.x - 1));
+			directions.Push(RC::MovementDirection(FVector(0.0f, 1.0f, 0.0f), RC::RotationAxis::RX, Parts.getWidth() - coord.x - 1));
 			directions.Push(RC::MovementDirection(FVector(0.0f, -1.0f, 0.0f), RC::RotationAxis::FX, coord.x));
 			directions.Push(RC::MovementDirection(FVector(1.0f, 0.0f, 0.0f), RC::RotationAxis::FY, coord.y));
-			directions.Push(RC::MovementDirection(FVector(-1.0f, 0.0f, 0.0f), RC::RotationAxis::RY, parts.getWidth() - coord.y - 1));
+			directions.Push(RC::MovementDirection(FVector(-1.0f, 0.0f, 0.0f), RC::RotationAxis::RY, Parts.getWidth() - coord.y - 1));
 			sideIndex = 5;
 		}
 		else

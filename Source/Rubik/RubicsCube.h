@@ -38,6 +38,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Colors")
 	TArray<UMaterialInstance*> SideColors;
 
+	UFUNCTION(BlueprintCallable, Category = "Colors")
+	void UpdateSideMaterials();
+
 	UFUNCTION(BlueprintCallable, Category = "Actions")
 	bool CanUndoRotation() const;
 

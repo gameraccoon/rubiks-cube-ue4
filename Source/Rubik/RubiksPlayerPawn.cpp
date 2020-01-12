@@ -9,8 +9,8 @@ ARubiksPlayerPawn::ARubiksPlayerPawn()
 	: CameraPitch(0)
 	, CameraYaw(0)
 	, CameraRoll(0)
-	, CameraOffset(130.0f)
 	, Cube(nullptr)
+	, CameraOffset(130.0f)
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;

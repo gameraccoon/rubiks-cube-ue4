@@ -130,6 +130,7 @@ void ARubicsCube::AttachSidesToSockets(UWorld * const world, AActor * actor, con
 		{
 			ARubiksSide_Standart* side = world->SpawnActor<ARubiksSide_Standart>(ARubiksSide_Standart::StaticClass());
 			side->AttachToComponent(component, FAttachmentTransformRules(EAttachmentRule(), false), sName);
+			side->SetInitialSideIndex(SideNum);
 			if (ARubiksBlock* block = Cast<ARubiksBlock>(actor))
 			{
 				block->Sides.Push(side);
@@ -173,6 +174,27 @@ void ARubicsCube::AddRotation(const RC::RotationAxis& axis, int layerIndex)
 		CurrentCommand->SetTarget(this);
 		CommandHistory->AddCommand(CurrentCommand.ToSharedRef());
 	}
+}
+
+void ARubicsCube::UpdateSideMaterials()
+{
+	Parts->ForEachPart([this](Coord /*coord*/, ARubikPart* part)
+	{
+		ARubiksBlock_Standart* partActor = Cast<ARubiksBlock_Standart>(part);
+		if (partActor == nullptr)
+		{
+			return;
+		}
+
+		for (auto side : partActor->Sides)
+		{
+			if (ARubiksSide_Standart* sideStandart = Cast<ARubiksSide_Standart>(side))
+			{
+				UMaterialInstance* material = SideColors[sideStandart->GetInitialSideIndex()];
+				Cast<UStaticMeshComponent>(side->GetComponentByClass(UStaticMeshComponent::StaticClass()))->SetMaterial(0, material);
+			}
+		}
+	});
 }
 
 bool ARubicsCube::CanUndoRotation() const
@@ -239,9 +261,20 @@ void ARubicsCube::OnHistoryLoaded()
 
 void ARubicsCube::MakeRandomMoves(int Count)
 {
-	for (int i = 0; i < Count; ++i)
+	int PreviousAxisIndexReversed = -1;
+	int PreviousLayerIndex = -1;
+	int i = 0;
+	while (i < Count)
 	{
 		int AxisIndex = FMath::Rand() % 6;
+		int LayerIndex = FMath::Rand() % GridSize;
+
+		// don't produce a rotation if it negates the previous one
+		if (LayerIndex == PreviousAxisIndexReversed && PreviousLayerIndex == LayerIndex)
+		{
+			continue;
+		}
+
 		RC::RotationAxis Axis;
 		switch (AxisIndex)
 		{
@@ -264,11 +297,14 @@ void ARubicsCube::MakeRandomMoves(int Count)
 			Axis = RC::RotationAxis::RZ;
 			break;
 		default:
-			break;
+			return;
 		}
 
-		int LayerIndex = FMath::Rand() % GridSize;
 		AddRotation(Axis, LayerIndex);
+
+		PreviousAxisIndexReversed = (LayerIndex + 3) % 6;
+		PreviousLayerIndex = LayerIndex;
+		++i;
 	}
 	OnMoveDone.Broadcast();
 }

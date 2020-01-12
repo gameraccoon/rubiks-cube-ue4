@@ -5,7 +5,9 @@
 #include "GameFramework/Actor.h"
 #include "RubikPart.generated.h"
 
-struct Coord {
+struct Coord
+{
+	Coord() : x(-1), y(-1), z(-1) {}
 	Coord(int _x, int _y, int _z) : x(_x), y(_y), z(_z) {}
 	int x, y, z;
 };
@@ -17,5 +19,5 @@ class RUBIK_API ARubikPart : public AActor
 
 public:
 
-	Coord InitialPos = Coord(-1, -1, -1);
+	Coord InitialPos;
 };

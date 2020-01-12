@@ -48,8 +48,12 @@ public:
 	void SetCurrentSideIndex(int NewSideIndex) { SideIndex = NewSideIndex; }
 	int GetSideIndex() const { return SideIndex; }
 
+	void SetInitialSideIndex(int InSideIndex) { InitialSideIndex = InSideIndex; }
+	int GetInitialSideIndex() const { return InitialSideIndex; }
+
 private:
 	TArray<RC::MovementDirection> Directions;
 	int ColorIndex = -1;
 	int SideIndex = -1;
+	int InitialSideIndex = -1;
 };
