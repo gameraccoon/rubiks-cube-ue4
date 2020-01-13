@@ -57,6 +57,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Cube")
 	void SetCube(ARubicsCube* NewCube);
 
+	UFUNCTION(BlueprintCallable, Category = "Controls")
+	void SetRMBSensitivity(float NewSensitivity);
+
+	UFUNCTION(BlueprintCallable, Category = "Controls")
+	void SetTouchRotationSensitivity(float NewSensitivity);
+
+	UFUNCTION(BlueprintCallable, Category = "Controls")
+	void SetTwoFingersRotationSensitivity(float NewSensitivity);
+
 private:
 	bool IsCubeReady() const;
 
@@ -86,6 +95,8 @@ private:
 	bool RotationCompleted = false;
 
 	float RMBSensitivity = 4.0f;
+	float TouchRotationSensitivity = 1.0f;
+	float TwoFingersRotationSensitivity = 1.0f;
 
 	UPROPERTY()
 	AActor* SwipeStartActor = nullptr;

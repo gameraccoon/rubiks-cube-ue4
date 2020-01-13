@@ -106,12 +106,12 @@ bool ARubiksPlayerController::InputTouch(uint32 Handle, ETouchType::Type Type, c
 
 	if (Multitouch.GetTouchesCount() == 1)
 	{
-		FVector2D movement = Multitouch.GetMoveVector();
+		FVector2D movement = Multitouch.GetMoveVector() * TouchRotationSensitivity;
 		RotateCube(FRotator(movement.Y, -movement.X, 0.0f));
 	}
 	else
 	{
-		float spin = Multitouch.GetSpinAngle();
+		float spin = Multitouch.GetSpinAngle() * TwoFingersRotationSensitivity;
 		RotateCube(FRotator(0.0f, 0.0f, -spin));
 	}
 
@@ -167,6 +167,21 @@ ARubicsCube * ARubiksPlayerController::GetCube()
 void ARubiksPlayerController::SetCube(ARubicsCube* NewCube)
 {
 	MainCube = NewCube;
+}
+
+void ARubiksPlayerController::SetRMBSensitivity(float NewSensitivity)
+{
+	RMBSensitivity = NewSensitivity;
+}
+
+void ARubiksPlayerController::SetTouchRotationSensitivity(float NewSensitivity)
+{
+	TouchRotationSensitivity = NewSensitivity;
+}
+
+void ARubiksPlayerController::SetTwoFingersRotationSensitivity(float NewSensitivity)
+{
+	TwoFingersRotationSensitivity = NewSensitivity;
 }
 
 void ARubiksPlayerController::RotateCube(const FRotator& rotation)

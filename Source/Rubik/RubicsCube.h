@@ -70,6 +70,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Parameters")
 	float RotationSpeed = 10.0f;
 
+	UFUNCTION(BlueprintCallable, Category = "Appearance")
+	void SetRotationSpeed(float NewSpeed);
+
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FSimpleMulticastDelegate);
 
 	UPROPERTY(BlueprintAssignable)

@@ -284,6 +284,11 @@ void ARubicsCube::OnHistoryLoaded()
 	OnMoveDone.Broadcast();
 }
 
+void ARubicsCube::SetRotationSpeed(float NewSpeed)
+{
+	RotationSpeed = NewSpeed;
+}
+
 void ARubicsCube::MakeRandomMoves(int Count)
 {
 	int PreviousAxisIndexReversed = -1;
