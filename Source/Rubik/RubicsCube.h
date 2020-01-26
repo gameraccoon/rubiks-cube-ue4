@@ -87,6 +87,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Randomize")
 	void MakeRandomMoves(int Count);
 
+	UFUNCTION(BlueprintCallable, Category = "Rotation")
+	void ScheduleUpdateParts() { IsNeedUpdateParts = true; }
+
 public:
 	/** Sets default values for this actor's properties */
 	ARubicsCube(const class FObjectInitializer& OI);
@@ -96,8 +99,6 @@ public:
 	
 	/** Called every frame */
 	virtual void Tick(float DeltaSeconds) override;
-
-	inline void ScheduleUpdateParts() { IsNeedUpdateParts = true; }
 
 	void AddRotation(const RC::RotationAxis& axis, int layerIndex);
 
