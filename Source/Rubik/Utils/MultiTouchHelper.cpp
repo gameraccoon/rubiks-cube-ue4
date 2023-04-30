@@ -19,6 +19,8 @@ namespace Utils
 
 	void MultitouchHelper::RemoveTouch(uint32 Handle)
 	{
+		Touches.Dump(*GLog);
+		TMap<uint64, UActorComponent*> ThreadSafeArray;
 		int count = Touches.Remove(Handle);
 		
 		if (count > 0)
